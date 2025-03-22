@@ -13,4 +13,5 @@ worldborder = (600, 400)
 
 camera_follow_speed_tresh = 10
 
-player_size = (75, 100)
+player_size = (50, 75)
+player_jump_reload = 0.1

@@ -82,20 +82,20 @@ def test_update():
     max_acc = u.distance_to_acc_per_updt(10)
     jump_speed = u.distance_to_speed_per_updt(5)
     if vr.inputs['RIGHT']:
-        vr.player_power_acc = max(min(max_acc, vr.player_power_acc + 50), 4000)
-        vr.player.acc[0] = min(max_acc, vr.player_power_acc) if vr.player.speed[1] == 0. else min(vr.player_power_acc * 0.4, max_acc)
+        vr.player_power_acc = max(min(max_acc, vr.player_power_acc + 50), 1000)
+        vr.player.acc[0] = min(max_acc, vr.player_power_acc) if vr.player.speed[1] == 0. else min(vr.player_power_acc * 0.5, max_acc)
     elif vr.inputs['LEFT']:
-        vr.player_power_acc = max(min(max_acc, vr.player_power_acc + 50), 4000)
-        vr.player.acc[0] += -1 * min(max_acc, vr.player_power_acc) if vr.player.speed[1] == 0. else -1 * min(vr.player_power_acc * 0.4, max_acc)
+        vr.player_power_acc = max(min(max_acc, vr.player_power_acc + 50), 1000)
+        vr.player.acc[0] += -1 * min(max_acc, vr.player_power_acc) if vr.player.speed[1] == 0. else -1 * min(vr.player_power_acc * 0.5, max_acc)
     else:
         vr.player_power_acc = 0
 
     if vr.inputs['DOWN']:
         vr.player.acc[1] += max_acc
-    elif vr.inputs['UP'] and vr.player.speed[1] == 0.:
+    elif vr.inputs['UP'] and 'on_ground' in vr.player.tags and 'jump_ready' in vr.player.tags:
         vr.player.speed[1] += - 8 * jump_speed
-
-    vr.info_txt = vr.player.acc
+        vr.player.tags.remove('jump_ready')
+        vr.player.actions_timers['jump'] = vr.t
 
     vr.player.update()
     vr.player.draw()

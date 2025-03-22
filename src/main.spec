@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('rsc/*.*', 'rsc/'), ('rsc/visuals/player/*.*', 'rsc/visuals/player/')],
+    datas=[('rsc/*.*', 'rsc/'), ('rsc/visuals/player/stand/*.png', 'rsc/visuals/player/stand/'), ('rsc/visuals/player/run/*.png', 'rsc/visuals/player/run/'), ('rsc/visuals/player/jumpside/*.png', 'rsc/visuals/player/jumpside/'), ('rsc/visuals/player/fall/*.png', 'rsc/visuals/player/fall/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

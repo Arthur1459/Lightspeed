@@ -16,8 +16,10 @@ def load_folder(folderpath, resize=None, files_type="*.png", flip=(False, False)
     return [img(filepath, full_path=True, resize=resize, flip=flip) for filepath in sorted(files_paths)]
 
 player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/stand", resize=cf.player_size)},
-                  'run_right': {'duration': 0.1, 'frames': load_folder("player/run", resize=cf.player_size, flip=(False, False))},
-                  'run_left': {'duration': 0.1, 'frames': load_folder("player/run", resize=cf.player_size, flip=(True, False))},
+                  'run_right': {'duration': 0.05, 'frames': load_folder("player/run", resize=cf.player_size, flip=(False, False))},
+                  'run_left': {'duration': 0.05, 'frames': load_folder("player/run", resize=cf.player_size, flip=(True, False))},
                   'jump_right': {'duration': 1, 'frames': load_folder("player/jumpside", resize=cf.player_size, flip=(False, False))},
                   'jump_left': {'duration': 1, 'frames': load_folder("player/jumpside", resize=cf.player_size, flip=(True, False))},
-                  'fall': {'duration': 1, 'frames': load_folder("player/fall", resize=cf.player_size, flip=(False, False))}}
+                  'fall': {'duration': 1, 'frames': load_folder("player/fall", resize=cf.player_size, flip=(False, False))},
+                  'slide_right': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(False, False))},
+                  'slide_left': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(True, False))}}
