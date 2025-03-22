@@ -23,3 +23,5 @@ player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/sta
                   'fall': {'duration': 1, 'frames': load_folder("player/fall", resize=cf.player_size, flip=(False, False))},
                   'slide_right': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(False, False))},
                   'slide_left': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(True, False))}}
+
+blocks = {'metal': load_folder("blocks/metal_blocks")}

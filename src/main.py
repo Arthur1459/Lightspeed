@@ -7,7 +7,7 @@ import config as cf
 import time
 
 from player import Player
-from geometry import Geobject
+from geometry import Block, Geobject
 
 def init():
 
@@ -23,6 +23,12 @@ def init():
 
     vr.clock = pg.time.Clock()
 
+    vr.mask_background = pg.surface.Surface(vr.window_size)
+    vr.mask_background.fill(cf.back_base_color)
+    vr.mask_background.convert_alpha()
+
+    vr.world_area_obj = Geobject((0, 0), ((cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.world_size[1] - cf.worldborder[1]), (cf.worldborder[0], cf.world_size[1] - cf.worldborder[1])))
+
     return
 
 def main():
@@ -30,7 +36,9 @@ def main():
 
     # TEST
     vr.player = Player()
-    vr.geobjects.append(Geobject())
+    nx, ny = cf.world_size[0]//200, cf.world_size[1]//200
+    for i in range(500):
+        vr.geobjects.append(Block(anchori=(t.rndInt(1, nx - 1) * 200, t.rndInt(1, ny - 1) * 200), size=(200, 200)))
     # END TEST
 
     vr.running = True
@@ -55,9 +63,9 @@ def main():
                 print("Cursor : ", pg.mouse.get_pos())
 
         # Main Loop #
+        u.getInputs()
         pre_update()
         if vr.fps > cf.fps * cf.fps_treshold:
-            u.getInputs()
             update()
         post_update()
         # --------- #
@@ -67,43 +75,31 @@ def main():
 def update():
     vr.cursor = pg.mouse.get_pos()
 
-    test_update()
-
-    u.draw_worldborder()
-    return
-
-def test_update():
-
     for obj in vr.geobjects:
         if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
             obj.update()
             obj.draw()
 
-    max_acc = u.distance_to_acc_per_updt(10)
-    jump_speed = u.distance_to_speed_per_updt(5)
-    if vr.inputs['RIGHT']:
-        vr.player_power_acc = max(min(max_acc, vr.player_power_acc + 50), 1000)
-        vr.player.acc[0] = min(max_acc, vr.player_power_acc) if vr.player.speed[1] == 0. else min(vr.player_power_acc * 0.5, max_acc)
-    elif vr.inputs['LEFT']:
-        vr.player_power_acc = max(min(max_acc, vr.player_power_acc + 50), 1000)
-        vr.player.acc[0] += -1 * min(max_acc, vr.player_power_acc) if vr.player.speed[1] == 0. else -1 * min(vr.player_power_acc * 0.5, max_acc)
-    else:
-        vr.player_power_acc = 0
-
-    if vr.inputs['DOWN']:
-        vr.player.acc[1] += max_acc
-    elif vr.inputs['UP'] and 'on_ground' in vr.player.tags and 'jump_ready' in vr.player.tags:
-        vr.player.speed[1] += - 8 * jump_speed
-        vr.player.tags.remove('jump_ready')
-        vr.player.actions_timers['jump'] = vr.t
-
     vr.player.update()
     vr.player.draw()
+
+    test_update()
+    return
+
+def test_update():
 
     return
 
 def pre_update():
-    vr.window.fill((50, 20, 30))
+    speed_factor = t.norm(vr.player.speed)/1000
+    color = cf.back_base_color[:]
+    color[0] = min(250, cf.back_base_color[0] * max(0.5, speed_factor))
+    vr.mask_background.fill(color)
+    vr.mask_background.set_alpha(max(cf.max_blur, min(255, int(255 * (1 - speed_factor)))))
+    vr.window.blit(vr.mask_background, (0, 0))
+
+    u.draw_worldborder()
+    pg.draw.line(vr.window, 'black', u.adapt_to_view((0, cf.world_size[1] - cf.worldborder[1])), u.adapt_to_view((cf.world_size[0], cf.world_size[1] - cf.worldborder[1])), 20)
     return
 
 def post_update():

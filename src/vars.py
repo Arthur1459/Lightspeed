@@ -21,10 +21,10 @@ cursor = (0, 0)
 info_txt = ""
 id = 0
 
+mask_background = None
+world_area_obj = None
 camera_coord = (500, 400)
 player = None
 
 geobjects = []
-
-player_power_acc = 0
 
