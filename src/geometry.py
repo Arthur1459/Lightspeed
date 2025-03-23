@@ -51,7 +51,7 @@ class Block(Geobject):
 
         self.tags.add('solid')
 
-        self.visual = pg.transform.scale(t.rnd_choice(blocks['metal']), self.size)
+        self.visual = pg.transform.scale(blocks['metal'][0], self.size)
 
     def get_type(self):
         return 'block'

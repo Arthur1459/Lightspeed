@@ -28,6 +28,7 @@ def getInputs():
 
     vr.inputs["B"] = True if keys[pg.K_b] else False
     vr.inputs["S"] = True if keys[pg.K_s] else False
+    vr.inputs["F"] = True if keys[pg.K_f] else False
 
 def isInWindow(coord):
     if 0 <= coord[0] <= vr.win_width:

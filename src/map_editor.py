@@ -36,6 +36,10 @@ def editor_update():
         vr.map.save_map()
         print("Map Saved.")
 
+    if vr.inputs['F'] and wait_for_key():
+        vr.fly_mode = False if vr.fly_mode else True
+        vr.gravity = 0 if vr.fly_mode else cf.gravity
+
     return
 
 def editor_draw():

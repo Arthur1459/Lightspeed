@@ -21,6 +21,9 @@ cursor = (0, 0)
 info_txt = ""
 id = 0
 
+fly_mode = cf.fly_mode
+gravity = cf.gravity
+
 camera_coord = cf.start_camera_coord
 mask_background = None
 world_area_obj = None

@@ -11,6 +11,7 @@ class Map:
     def __init__(self, name='default'):
         self.name = name
 
+        self.start_coord = cf.start_camera_coord
         self.geobjects = []
         self.content = {'geobjects': set()}
 
@@ -31,6 +32,7 @@ class Map:
     def reload_map(self):
         for geo_type, geo_data in self.content['geobjects']:
             self.reload_obj(geo_type, geo_data)
+        vr.camera_coord = self.start_coord
 
     def reload_obj(self, geo_type, geo_data):
         if geo_type == 'block':
@@ -42,10 +44,12 @@ class Map:
 
     def save_map(self):
         with open(u.path(f"rsc/maps/{self.name}.pkl"), 'wb') as file:
-            pickle.dump(self.content, file, pickle.HIGHEST_PROTOCOL)
+            self.start_coord = vr.camera_coord
+            datas = (self.start_coord, self.content)
+            pickle.dump(datas, file, pickle.HIGHEST_PROTOCOL)
 
     def load_map(self, name='default'):
         with open(u.path(f"rsc/maps/{name}.pkl"), 'rb') as file:
-            self.content = pickle.load(file)
+            self.start_coord, self.content = pickle.load(file)
         self.reload_map()
 

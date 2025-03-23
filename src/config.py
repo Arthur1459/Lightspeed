@@ -20,7 +20,7 @@ gravity = 1
 
 # Camera
 camera_follow_speed_tresh = 10
-start_camera_coord = (500, 400)
+start_camera_coord = (worldborder[0], world_size[1] - worldborder[1] - view_size[1])
 
 # Map
 max_blur = 90
@@ -38,8 +38,9 @@ player_max_acc = 2.5
 player_jump_reload = 0.1
 player_jump_max_counter = 8
 player_jump_power = 14
-player_double_jump_speed_turn = 0.8
-player_side_jump_speed_turn = 1.5
+player_double_jump_speed_turn = 0.3
+player_side_jump_speed_turn = 8
+player_side_jump_power = 2
 player_down_acc = 1
 player_air_control = 0.4
 player_ground_friction = 0.85

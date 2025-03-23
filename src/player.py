@@ -25,7 +25,7 @@ class Player:
         self.visual, self.visual_index, self.visual_time, self.visual_duration = self.visuals[self.states]['frames'][0], 0, 0, self.visuals[self.states]['duration']
 
         self.actions_timers = {'jump': 0}
-        self.actions_counter = {'jump': 0, 'double_jump': 1}
+        self.actions_counter = {'jump': 0, 'double_jump': 1, 'side_jump': 0}
         self.player_power_acc = 0
 
         self.detectors = {'body': Detector(self.get_center(), (0, 0)),
@@ -51,7 +51,7 @@ class Player:
         self.control_player()
 
         # Update Speed wanted
-        self.acc = t.Vadd(self.acc, (0, u.distance_to_acc_per_updt(cf.gravity)))
+        self.acc = t.Vadd(self.acc, (0, u.distance_to_acc_per_updt(vr.gravity)))
         self.speed = t.Vcl(1, t.VxV(self.speed, (cf.player_ground_friction if 'on_ground' in self.tags else cf.player_air_friction, cf.player_air_friction)), vr.dt_update, self.acc)
 
         # Control collide
@@ -156,33 +156,34 @@ class Player:
 
     def control_player(self):
 
-        if cf.fly_mode:
+        if vr.fly_mode:
             if vr.inputs['RIGHT']: self.speed[0] = 1 * u.distance_to_speed_per_updt(10)
             elif vr.inputs['LEFT']: self.speed[0] = -1 * u.distance_to_speed_per_updt(10)
             if vr.inputs['DOWN']: self.speed[1] = 1 * u.distance_to_speed_per_updt(10)
             elif vr.inputs['UP']: self.speed[1] = -1 * u.distance_to_speed_per_updt(10)
             return
 
+        in_the_air = 'on_ground' not in self.tags
         max_acc = u.distance_to_acc_per_updt(cf.player_max_acc)
         if vr.inputs['RIGHT'] and 'solid' not in self.detectors['right'].detection:
             if self.speed[0] < 0:
                 self.player_power_acc = u.distance_to_acc_per_updt(cf.player_acc_break_ground)
             else:
                 self.player_power_acc = max(min(max_acc, self.player_power_acc + cf.player_power_acc_increment), u.distance_to_acc_per_updt(cf.player_acc_minimal_ground))
-                self.speed[0] = max(self.speed[0], 1 * u.distance_to_speed_per_updt(cf.player_speed_start))
+                self.speed[0] = max(self.speed[0], 1 * u.distance_to_speed_per_updt(cf.player_speed_start) if not in_the_air else 0)
             self.acc[0] = min(max_acc, self.player_power_acc) if vr.player.speed[1] == 0. else min(self.player_power_acc * cf.player_air_control, max_acc)
         elif vr.inputs['LEFT'] and 'solid' not in self.detectors['left'].detection:
             if self.speed[0] > 0:
                 self.player_power_acc = u.distance_to_acc_per_updt(cf.player_acc_break_ground)
             else:
                 self.player_power_acc = max(min(max_acc, self.player_power_acc + cf.player_power_acc_increment), u.distance_to_acc_per_updt(cf.player_acc_minimal_ground))
-                self.speed[0] = min(self.speed[0], -1 * u.distance_to_speed_per_updt(cf.player_speed_start))
+                self.speed[0] = min(self.speed[0], -1 * u.distance_to_speed_per_updt(cf.player_speed_start) if not in_the_air else 0)
             self.acc[0] += -1 * min(max_acc, self.player_power_acc) if vr.player.speed[1] == 0. else -1 * min(self.player_power_acc * cf.player_air_control, max_acc)
         else:
             self.player_power_acc = 0
 
         jump_speed = u.distance_to_speed_per_updt(cf.player_jump_power)
-        in_the_air = 'on_ground' not in self.tags
+        side_jump_speed = u.distance_to_speed_per_updt(cf.player_side_jump_power)
         if vr.inputs['DOWN']:
             self.acc[1] += u.distance_to_acc_per_updt(cf.player_down_acc)
         elif vr.inputs['UP']:
@@ -194,17 +195,22 @@ class Player:
                 self.actions_counter['jump'] = 0
                 if 'can_double_jump' in self.tags:
                     self.remove_tag('can_double_jump')
-                    if vr.inputs['RIGHT'] and self.speed[0] < 0: self.speed[0] = abs(self.speed[0])
-                    if vr.inputs['LEFT'] and self.speed[0] > 0: self.speed[0] = -1 * abs(self.speed[0])
+                    if vr.inputs['RIGHT'] and self.speed[0] < 0: self.speed[0] = u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
+                    if vr.inputs['LEFT'] and self.speed[0] > 0: self.speed[0] = -1 * u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
             elif in_the_air:
-                if 'solid' in self.detectors['right'].detection:
+                self.actions_counter['side_jump'] = 0
+                if 'can_side_jump' in self.tags and 'solid' in self.detectors['right'].detection:
                     self.speed[0] = -1 * max(u.distance_to_speed_per_updt(cf.player_side_jump_speed_turn) , abs(self.speed[0]))
-                    self.speed[1] = min(-1 * jump_speed, self.speed[1])
+                    self.speed[1] = min(-1 * side_jump_speed, self.speed[1])
+                    self.actions_counter['side_jump'] = 0
+                    self.remove_tag('can_side_jump')
                     self.actions_counter['double_jump'] = 1
                     self.remove_tag('can_double_jump')
-                if 'solid' in self.detectors['left'].detection:
+                if 'can_side_jump' in self.tags and 'solid' in self.detectors['left'].detection:
                     self.speed[0] = 1 * max(u.distance_to_speed_per_updt(cf.player_side_jump_speed_turn) , abs(self.speed[0]))
-                    self.speed[1] = min(-1 * jump_speed, self.speed[1])
+                    self.speed[1] = min(-1 * side_jump_speed, self.speed[1])
+                    self.actions_counter['side_jump'] = 0
+                    self.remove_tag('can_side_jump')
                     self.actions_counter['double_jump'] = 1
                     self.remove_tag('can_double_jump')
             if 'jumping' in self.tags:
@@ -216,13 +222,19 @@ class Player:
 
         else:
             if in_the_air:
-                if self.actions_counter['double_jump'] > 0:
+                if self.actions_counter['double_jump'] == 1:
                     self.tags.add('can_double_jump')
-                    self.actions_counter['double_jump'] += -1
+                    self.actions_counter['double_jump'] = 0
+                if self.actions_counter['side_jump'] == 0:
+                    self.tags.add('can_side_jump')
+                    self.actions_counter['side_jump'] = 1
             elif not in_the_air:
                 self.actions_counter['double_jump'] = 1
                 self.remove_tag('can_double_jump')
+                self.remove_tag('can_side_jump')
             self.remove_tag('jumping')
+
+        vr.info_txt = self.tags
 
     def remove_tag(self, tag):
         if tag in self.tags: self.tags.remove(tag)
