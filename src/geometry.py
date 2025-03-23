@@ -19,6 +19,11 @@ class Geobject:
 
         self.radius = max([t.norm(point) for point in self.points_relative])
 
+    def get_type(self):
+        return 'geobject'
+    def get_data(self):
+        return (self.world_anchor, self.points_relative)
+
     def update(self):
         for i, point in enumerate(self.points_relative):
             self.points_absolute[i] = t.Vadd(self.world_anchor, point)
@@ -47,9 +52,16 @@ class Block(Geobject):
         self.tags.add('solid')
 
         self.visual = pg.transform.scale(t.rnd_choice(blocks['metal']), self.size)
+
+    def get_type(self):
+        return 'block'
+    def get_data(self):
+        return (self.world_anchor, self.size)
+
     def sizex(self):
         return self.size[0]
     def sizey(self):
         return self.size[1]
+
     def draw(self):
         vr.window.blit(self.visual, u.adapt_to_view(self.world_anchor))

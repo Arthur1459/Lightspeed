@@ -21,10 +21,11 @@ cursor = (0, 0)
 info_txt = ""
 id = 0
 
+camera_coord = cf.start_camera_coord
 mask_background = None
 world_area_obj = None
-camera_coord = (500, 400)
-player = None
 
-geobjects = []
+player = None
+map = None
+
 

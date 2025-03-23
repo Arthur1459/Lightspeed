@@ -8,6 +8,9 @@ import time
 
 from player import Player
 from geometry import Block, Geobject
+from maps import Map
+from map_editor import editor_update, editor_draw
+import map_editor as me
 
 def init():
 
@@ -29,16 +32,18 @@ def init():
 
     vr.world_area_obj = Geobject((0, 0), ((cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.world_size[1] - cf.worldborder[1]), (cf.worldborder[0], cf.world_size[1] - cf.worldborder[1])))
 
+    vr.map = Map()
+
     return
 
 def main():
     init()
 
     # TEST
+
     vr.player = Player()
-    nx, ny = cf.world_size[0]//200, cf.world_size[1]//200
-    for i in range(500):
-        vr.geobjects.append(Block(anchori=(t.rndInt(1, nx - 1) * 200, t.rndInt(1, ny - 1) * 200), size=(200, 200)))
+    vr.map.load_map()
+
     # END TEST
 
     vr.running = True
@@ -56,11 +61,15 @@ def main():
         if frames_fps > 1000:
             frames_fps, t_fps = 0, time.time()
 
+        vr.inputs['CLICK'] = False
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 vr.running = False
             elif event.type == pg.MOUSEBUTTONDOWN:
-                print("Cursor : ", pg.mouse.get_pos())
+                vr.inputs['CLICK'], vr.inputs['CLICK_PRESSED'] = True, True
+                print("Cursor clicked at : ", pg.mouse.get_pos())
+            elif event.type == pg.MOUSEBUTTONUP:
+                vr.inputs['CLICK_PRESSED'] = False
 
         # Main Loop #
         u.getInputs()
@@ -75,19 +84,26 @@ def main():
 def update():
     vr.cursor = pg.mouse.get_pos()
 
-    for obj in vr.geobjects:
+    cursor_world_coord = t.Vadd(vr.cursor, vr.camera_coord)
+    me.editor_selected_obj = None
+    for obj in vr.map.geobjects:
         if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
             obj.update()
             obj.draw()
+        if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord):
+            me.editor_selected_obj = obj
 
     vr.player.update()
     vr.player.draw()
 
-    test_update()
+    if cf.editor_mode:
+        editor_update()
+        editor_draw()
+
+    test_at_update()
     return
 
-def test_update():
-
+def test_at_update():
     return
 
 def pre_update():

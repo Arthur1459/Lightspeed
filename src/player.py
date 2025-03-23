@@ -224,8 +224,6 @@ class Player:
                 self.remove_tag('can_double_jump')
             self.remove_tag('jumping')
 
-        vr.info_txt = self.tags
-
     def remove_tag(self, tag):
         if tag in self.tags: self.tags.remove(tag)
     def get_size(self):
@@ -256,7 +254,7 @@ class Detector:
         self.detection = set()
         if not vr.world_area_obj.intersect(self.absolute_coord):
             self.detection.add('solid')
-        for obj in vr.geobjects:
+        for obj in vr.map.geobjects:
             if t.distance(self.absolute_coord, obj.world_anchor) < obj.radius and obj.intersect(self.absolute_coord):
                 self.detection = self.detection.union(obj.tags)
 
