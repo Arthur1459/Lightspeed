@@ -47,6 +47,10 @@ def VmaxControl(v, max_abs=1):
 
 def rndInt(a, b):
     return a + int(random() * (b - a))
+def rnd(a, b):
+    return a + random() * (b - a)
+def rndS():
+    return -1 if rndInt(0, 2) == 0 else 1
 
 def rnd_choice(L):
     return L[rndInt(0, len(L))]

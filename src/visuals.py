@@ -22,6 +22,14 @@ player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/sta
                   'jump_left': {'duration': 1, 'frames': load_folder("player/jumpside", resize=cf.player_size, flip=(True, False))},
                   'fall': {'duration': 1, 'frames': load_folder("player/fall", resize=cf.player_size, flip=(False, False))},
                   'slide_right': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(False, False))},
-                  'slide_left': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(True, False))}}
+                  'slide_left': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(True, False))},
+                  'dead': {'duration': 0, 'frames': [img('empty.png')]}}
 
 blocks = {'metal': load_folder("blocks/metal_blocks")}
+spike = {'frames': load_folder("blocks/fire_blocks"), 'duration': 0.15}
+particles = {'default': {'frames': load_folder("particles/default"), 'duration': 0.2},
+             'fire': {'frames': load_folder("particles/fire"), 'duration': 0.1},
+             'void': {'frames': load_folder("particles/void"), 'duration': 0.2},
+             'star': {'frames': load_folder("particles/star"), 'duration': 1.}}
+
+sync_animations_cycles = [('spike', spike)]

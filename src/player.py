@@ -3,6 +3,7 @@ import config as cf
 import tools as t
 import utils as u
 from visuals import player_visuals
+from ambient import Particle
 
 import pygame as pg
 
@@ -24,7 +25,7 @@ class Player:
         self.visuals = player_visuals
         self.visual, self.visual_index, self.visual_time, self.visual_duration = self.visuals[self.states]['frames'][0], 0, 0, self.visuals[self.states]['duration']
 
-        self.actions_timers = {'jump': 0}
+        self.actions_timers = {'jump': 0, 'respawn': 0}
         self.actions_counter = {'jump': 0, 'double_jump': 1, 'side_jump': 0}
         self.player_power_acc = 0
 
@@ -38,10 +39,12 @@ class Player:
                           'walk_left': Detector(self.get_center(), (-0.4 * self.sizex, 0.3 * self.sizey)),
                           'knees': Detector(self.get_center(), (0, 0.5 * self.sizey)),
                           'foot': Detector(self.get_center(), (0, 0.55 * self.sizey))}
+        self.all_detection = self.get_all_detection()
 
     def update(self):
         for detector in self.detectors:
             self.detectors[detector].update(self.get_center())
+        self.all_detection = self.get_all_detection()
 
         # Action reload
         if vr.t - self.actions_timers['jump'] > cf.player_jump_reload and 'jump_ready' not in self.tags:
@@ -54,67 +57,74 @@ class Player:
         self.acc = t.Vadd(self.acc, (0, u.distance_to_acc_per_updt(vr.gravity)))
         self.speed = t.Vcl(1, t.VxV(self.speed, (cf.player_ground_friction if 'on_ground' in self.tags else cf.player_air_friction, cf.player_air_friction)), vr.dt_update, self.acc)
 
-        # Control collide
-        if 'solid' in self.detectors['right'].detection:
-            if self.speed[0] > 0:
-                self.speed[0] = 0
-        if 'solid' in self.detectors['left'].detection:
-            if self.speed[0] < 0:
-                self.speed[0] = 0
+        # Special Detector detection
+        if 'dead' not in self.tags and self.is_killed():
+            self.tags.add('dead')
+            self.actions_timers['respawn'] = vr.t
+            self.damage_taken_effect()
 
-        if 'solid' in self.detectors['foot'].detection:
-            self.tags.add('on_ground')
-            if self.speed[1] > 0:
-                self.speed[1] = 0
-        else:
-            if 'on_ground' in self.tags: self.tags.remove('on_ground')
-        if 'solid' in self.detectors['head'].detection:
-            if self.speed[1] < 0:
-                self.speed[1] = 0.1 * abs(self.speed[1])
-                if 'jumping' in self.tags: self.tags.remove('jumping')
+        if 'dead' not in self.tags:
+            # Control collide
+            if 'solid' in self.detectors['right'].detection:
+                if self.speed[0] > 0:
+                    self.speed[0] = 0
+            if 'solid' in self.detectors['left'].detection:
+                if self.speed[0] < 0:
+                    self.speed[0] = 0
 
-        if 'solid' in self.detectors['body_right'].detection:
-            self.speed[0] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-        if 'solid' in self.detectors['body_left'].detection:
-            self.speed[0] += 1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-        if 'solid' in self.detectors['walk_right'].detection and 'solid' not in self.detectors['right'].detection:
-            self.speed[0] += 0.2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-            self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-        if 'solid' in self.detectors['walk_left'].detection and 'solid' not in self.detectors['left'].detection:
-            self.speed[0] += -0.2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-            self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-        if 'solid' in self.detectors['knees'].detection:
-            self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-        if 'solid' in self.detectors['body'].detection:
-            self.speed[1] += -2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+            if 'solid' in self.detectors['foot'].detection:
+                self.tags.add('on_ground')
+                if self.speed[1] > 0:
+                    self.speed[1] = 0
+            else:
+                if 'on_ground' in self.tags: self.tags.remove('on_ground')
+            if 'solid' in self.detectors['head'].detection:
+                if self.speed[1] < 0:
+                    self.speed[1] = 0.1 * abs(self.speed[1])
+                    if 'jumping' in self.tags: self.tags.remove('jumping')
 
-        # Speed Zero if small
-        if abs(self.speed[0]) < u.distance_to_speed_per_updt(0.2): self.speed[0] = 0
-        if abs(self.speed[1]) < u.distance_to_speed_per_updt(0.2): self.speed[1] = 0
+            if 'solid' in self.detectors['body_right'].detection:
+                self.speed[0] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+            if 'solid' in self.detectors['body_left'].detection:
+                self.speed[0] += 1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+            if 'solid' in self.detectors['walk_right'].detection and 'solid' not in self.detectors['right'].detection:
+                self.speed[0] += 0.2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+            if 'solid' in self.detectors['walk_left'].detection and 'solid' not in self.detectors['left'].detection:
+                self.speed[0] += -0.2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+            if 'solid' in self.detectors['knees'].detection:
+                self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+            if 'solid' in self.detectors['body'].detection:
+                self.speed[1] += -2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
 
-        # Coord decentralised in window
-        self.coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
+            # Speed Zero if small
+            if abs(self.speed[0]) < u.distance_to_speed_per_updt(0.2): self.speed[0] = 0
+            if abs(self.speed[1]) < u.distance_to_speed_per_updt(0.2): self.speed[1] = 0
 
-        #--- Camera update
-        camera_speed = [0, 0]
-        border_distances = (-self.decentralise[0] + self.sizex/2, 2 * cf.worldborder[0] + 2 * self.decentralise[0], -self.decentralise[1] + self.sizey/2, 2 * cf.worldborder[1] + 2 * self.decentralise[1])
+            # Coord decentralised in window
+            self.coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
 
-        future_decentralise = t.Vcl(1, self.decentralise, vr.dt_update, self.speed)
-        self.decentralise = t.VmaxControl(future_decentralise, self.sizex)
-        speed_remaining = (u.distance_to_speed_per_updt(future_decentralise[0] - self.decentralise[0]), u.distance_to_speed_per_updt(future_decentralise[1] - self.decentralise[1]))
+            #--- Camera update
+            camera_speed = [0, 0]
+            border_distances = (-self.decentralise[0] + self.sizex/2, 2 * cf.worldborder[0] + 2 * self.decentralise[0], -self.decentralise[1] + self.sizey/2, 2 * cf.worldborder[1] + 2 * self.decentralise[1])
 
-        if abs(self.speed[0]) * vr.dt_update < cf.camera_follow_speed_tresh:
-            camera_speed[0] += 0.05 * u.distance_to_speed_per_updt(self.decentralise[0]) + speed_remaining[0]
-            self.decentralise[0] += -1 * vr.dt_update * (camera_speed[0] - speed_remaining[0])
-        if u.distance_to_speed_per_updt(abs(self.speed[1])) < cf.camera_follow_speed_tresh:
-            camera_speed[1] += 0.05 * u.distance_to_speed_per_updt(self.decentralise[1]) + speed_remaining[1]
-            self.decentralise[1] += -1 * vr.dt_update * (camera_speed[1] - speed_remaining[1])
+            future_decentralise = t.Vcl(1, self.decentralise, vr.dt_update, self.speed)
+            self.decentralise = t.VmaxControl(future_decentralise, self.sizex)
+            speed_remaining = (u.distance_to_speed_per_updt(future_decentralise[0] - self.decentralise[0]), u.distance_to_speed_per_updt(future_decentralise[1] - self.decentralise[1]))
 
-        if abs(self.decentralise[0]) == self.sizex:
-            camera_speed[0] += self.speed[0]
-        if abs(self.decentralise[1]) == self.sizex:
-            camera_speed[1] += self.speed[1]
-        vr.camera_coord = t.Vcl(1, vr.camera_coord, 1 * vr.dt_update, camera_speed)
+            if abs(self.speed[0]) * vr.dt_update < cf.camera_follow_speed_tresh:
+                camera_speed[0] += 0.05 * u.distance_to_speed_per_updt(self.decentralise[0]) + speed_remaining[0]
+                self.decentralise[0] += -1 * vr.dt_update * (camera_speed[0] - speed_remaining[0])
+            if u.distance_to_speed_per_updt(abs(self.speed[1])) < cf.camera_follow_speed_tresh:
+                camera_speed[1] += 0.05 * u.distance_to_speed_per_updt(self.decentralise[1]) + speed_remaining[1]
+                self.decentralise[1] += -1 * vr.dt_update * (camera_speed[1] - speed_remaining[1])
+
+            if abs(self.decentralise[0]) == self.sizex:
+                camera_speed[0] += self.speed[0]
+            if abs(self.decentralise[1]) == self.sizex:
+                camera_speed[1] += self.speed[1]
+            vr.camera_coord = t.Vcl(1, vr.camera_coord, 1 * vr.dt_update, camera_speed)
 
         #---
 
@@ -127,7 +137,9 @@ class Player:
 
     def update_visual(self):
 
-        if self.speed[1] < 0:
+        if 'dead' in self.tags:
+            new_states = 'dead'
+        elif self.speed[1] < 0:
             if self.speed[0] >= 0:
                 new_states = 'jump_right'
             else:
@@ -145,6 +157,10 @@ class Player:
             new_states = 'stand'
 
         speed_factor = max(0.3, 8 * t.norm(self.speed) / u.distance_to_speed_per_updt(self.sizex))
+
+        if u.proba((speed_factor**2) * 10):
+            anchor = t.Vadd(t.Vadd(vr.camera_coord, self.coord), (self.sizex/2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex), self.sizey/2 + t.rndInt(- 0.4 * self.sizey, 0.4 * self.sizey)))
+            vr.map.ambient_elts.append(Particle('default', anchor, size=self.sizex, speed=self.speed, gravity=True))
 
         if new_states != self.states:
             self.states = new_states
@@ -234,7 +250,28 @@ class Player:
                 self.remove_tag('can_side_jump')
             self.remove_tag('jumping')
 
-        vr.info_txt = self.tags
+    def is_killed(self):
+        return 'spike' in self.all_detection
+
+    def respawn(self):
+        self.decentralise = [0, 0]
+        self.coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
+        self.speed = [0, 0]
+        self.acc = [0, 0]
+        self.tags = set()
+        self.states = 'stand'
+        self.actions_timers = {'jump': 0}
+        self.actions_counter = {'jump': 0, 'double_jump': 1, 'side_jump': 0}
+        self.player_power_acc = 0
+
+    def damage_taken_effect(self):
+        for i in range(100):
+            anchor = t.Vadd(t.Vadd(self.coord, vr.camera_coord), (
+            self.sizex / 2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex),
+            self.sizey / 2 + t.rndInt(- 0.4 * self.sizey, 0.4 * self.sizey)))
+            max_speed = u.distance_to_speed_per_updt(10)
+            speed = (t.rndInt(-max_speed, max_speed), t.rndInt(-max_speed, max_speed))
+            vr.map.ambient_elts.append(Particle('fire', anchor, size=4, speed=speed, gravity=True))
 
     def remove_tag(self, tag):
         if tag in self.tags: self.tags.remove(tag)
@@ -244,11 +281,14 @@ class Player:
         return self.sizex/2, self.sizey/2
     def get_center(self):
         return t.Vadd(self.coord, self.get_half_size())
+    def get_all_detection(self):
+        detection = set()
+        for detector in self.detectors:
+            detection = detection.union(self.detectors[detector].detection)
+        return detection
 
     def draw(self):
         vr.window.blit(self.visual, self.coord)
-        #for detector in self.detectors:
-        #    self.detectors[detector].draw()
 
 class Detector:
     def __init__(self, anchor, relative_coord):

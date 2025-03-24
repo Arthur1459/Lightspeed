@@ -11,6 +11,7 @@ from geometry import Block, Geobject
 from maps import Map
 from map_editor import editor_update, editor_draw
 import map_editor as me
+from visuals import sync_animations_cycles
 
 def init():
 
@@ -32,19 +33,20 @@ def init():
 
     vr.world_area_obj = Geobject((0, 0), ((cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.world_size[1] - cf.worldborder[1]), (cf.worldborder[0], cf.world_size[1] - cf.worldborder[1])))
 
+    for name, animation in sync_animations_cycles:
+        vr.animation_cycles[name]['t'] = vr.t
+        vr.animation_cycles[name]['dt_threshold'] = animation['duration']
+        vr.animation_cycles[name]['index'] = 0
+        vr.animation_cycles[name]['max_index'] = len(animation['frames'])
+
+    vr.player = Player()
     vr.map = Map()
+    vr.map.load_map()
 
     return
 
 def main():
     init()
-
-    # TEST
-
-    vr.player = Player()
-    vr.map.load_map()
-
-    # END TEST
 
     vr.running = True
 
@@ -83,14 +85,20 @@ def main():
 
 def update():
     vr.cursor = pg.mouse.get_pos()
-
     cursor_world_coord = t.Vadd(vr.cursor, vr.camera_coord)
+
+    vr.map.update()
+
+    for ambient_obj in vr.map.ambient_elts:
+        ambient_obj.draw()
+        if not ambient_obj.alive: vr.map.old_ambient_elts.append(ambient_obj)
+
     me.editor_selected_obj = None
     for obj in vr.map.geobjects:
         if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
             obj.update()
             obj.draw()
-        if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord):
+        if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_size() == (me.size_selected, me.size_selected):
             me.editor_selected_obj = obj
 
     vr.player.update()
@@ -107,13 +115,13 @@ def test_at_update():
     return
 
 def pre_update():
-    speed_factor = t.norm(vr.player.speed)/1000
-    color = cf.back_base_color[:]
-    color[0] = min(250, cf.back_base_color[0] * max(0.5, speed_factor))
-    vr.mask_background.fill(color)
-    vr.mask_background.set_alpha(max(cf.max_blur, min(255, int(255 * (1 - speed_factor)))))
-    vr.window.blit(vr.mask_background, (0, 0))
+    if vr.inputs['R']:
+        vr.map.reload_map()
+        vr.player.__init__()
+        time.sleep(0.1)
+        print("Map Reloaded.")
 
+    u.blur_background()
     u.draw_worldborder()
     pg.draw.line(vr.window, 'black', u.adapt_to_view((0, cf.world_size[1] - cf.worldborder[1])), u.adapt_to_view((cf.world_size[0], cf.world_size[1] - cf.worldborder[1])), 20)
     return
