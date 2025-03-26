@@ -16,4 +16,7 @@ make-app:
 			  	--add-data "rsc/visuals/particles/fire/*.png:rsc/visuals/particles/fire/" \
 			  	--add-data "rsc/visuals/particles/star/*.png:rsc/visuals/particles/star/" \
 			  	--add-data "rsc/visuals/particles/void/*.png:rsc/visuals/particles/void/" \
+			  	--add-data "rsc/visuals/creatures/bat/*.png:rsc/visuals/creatures/bat/" \
+			  	\
+			  	--add-data "rsc/sounds/musics/ingame/*.mp3:rsc/sounds/musics/ingame/" \
 			  	main.py

@@ -18,6 +18,7 @@ fps = cf.fps
 dt_update, t = 1 / fps, 0
 
 cursor = (0, 0)
+controller = None
 info_txt = ""
 id = 0
 

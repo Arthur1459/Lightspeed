@@ -12,6 +12,7 @@ from maps import Map
 from map_editor import editor_update, editor_draw
 import map_editor as me
 from visuals import sync_animations_cycles
+import SoundsManagement as sm
 
 def init():
 
@@ -43,6 +44,8 @@ def init():
     vr.map = Map()
     vr.map.load_map()
 
+    sm.PlayMusic('ingame')
+
     return
 
 def main():
@@ -67,6 +70,9 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 vr.running = False
+            elif event.type == pg.JOYDEVICEADDED:
+                vr.controller = pg.joystick.Joystick(event.device_index)
+                print(f"Joystick connected. (id : {vr.controller.get_instance_id()})")
             elif event.type == pg.MOUSEBUTTONDOWN:
                 vr.inputs['CLICK'], vr.inputs['CLICK_PRESSED'] = True, True
                 print("Cursor clicked at : ", pg.mouse.get_pos())
@@ -100,6 +106,13 @@ def update():
             obj.draw()
         if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_size() == (me.size_selected, me.size_selected):
             me.editor_selected_obj = obj
+
+    for obj in vr.map.creatures:
+        if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
+            obj.update()
+            obj.draw()
+            if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_size() == (me.size_selected, me.size_selected):
+                me.editor_selected_obj = obj
 
     vr.player.update()
     vr.player.draw()

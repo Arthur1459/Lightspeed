@@ -15,6 +15,8 @@ def load_folder(folderpath, resize=None, files_type="*.png", flip=(False, False)
     files_paths = glob(path(f"rsc/visuals/{folderpath}/{files_type}"))
     return [img(filepath, full_path=True, resize=resize, flip=flip) for filepath in sorted(files_paths)]
 
+empty = img("empty.png")
+
 player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/stand", resize=cf.player_size)},
                   'run_right': {'duration': 0.05, 'frames': load_folder("player/run", resize=cf.player_size, flip=(False, False))},
                   'run_left': {'duration': 0.05, 'frames': load_folder("player/run", resize=cf.player_size, flip=(True, False))},
@@ -25,11 +27,12 @@ player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/sta
                   'slide_left': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(True, False))},
                   'dead': {'duration': 0, 'frames': [img('empty.png')]}}
 
-blocks = {'metal': load_folder("blocks/metal_blocks")}
-spike = {'frames': load_folder("blocks/fire_blocks"), 'duration': 0.15}
-particles = {'default': {'frames': load_folder("particles/default"), 'duration': 0.2},
+blocks_visuals = {'metal': load_folder("blocks/metal_blocks")}
+spike_visuals = {'frames': load_folder("blocks/fire_blocks"), 'duration': 0.15}
+particles_visuals = {'default': {'frames': load_folder("particles/default"), 'duration': 0.2},
              'fire': {'frames': load_folder("particles/fire"), 'duration': 0.1},
              'void': {'frames': load_folder("particles/void"), 'duration': 0.2},
              'star': {'frames': load_folder("particles/star"), 'duration': 1.}}
+creatures_visuals = {'bat': {'frames': load_folder("creatures/bat"), 'duration': 0.05}}
 
-sync_animations_cycles = [('spike', spike)]
+sync_animations_cycles = [('spike', spike_visuals)]

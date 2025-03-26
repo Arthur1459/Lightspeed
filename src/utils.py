@@ -32,6 +32,20 @@ def getInputs():
     vr.inputs["F"] = True if keys[pg.K_f] else False
     vr.inputs["R"] = True if keys[pg.K_r] else False
 
+    if vr.controller is not None:
+        nb_axes = vr.controller.get_numaxes()
+        for i in range(nb_axes):
+            axis = vr.controller.get_axis(i)
+            if abs(axis) > cf.controller_threshold:
+                if i == 0:
+                    if axis > 0: vr.inputs["RIGHT"] = True
+                    elif axis < 0:
+                        vr.inputs["LEFT"] = True
+                if i == 1:
+                    if axis > 0: vr.inputs["DOWN"] = True
+        for i in range(1, 3):
+            if vr.controller.get_button(i) == 1: vr.inputs["UP"] = True
+
 def isInWindow(coord):
     if 0 <= coord[0] <= vr.win_width:
         if 0 <= coord[1] <= vr.win_height:
@@ -90,3 +104,6 @@ def blur_background():
 
 def proba(p):
     return t.rndInt(0, 100) < p
+
+def rnd_speed(speed):
+    return t.rnd(-1, 1) * distance_to_speed_per_updt(speed), t.rnd(-1, 1) * distance_to_speed_per_updt(speed)

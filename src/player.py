@@ -30,8 +30,8 @@ class Player:
         self.player_power_acc = 0
 
         self.detectors = {'body': Detector(self.get_center(), (0, 0)),
-                          'body_right': Detector(self.get_center(), (0.4 * self.sizex, 0)),
-                          'body_left': Detector(self.get_center(), (-0.4 * self.sizex, 0)),
+                          'body_right': Detector(self.get_center(), (0.3 * self.sizex, 0)),
+                          'body_left': Detector(self.get_center(), (-0.3 * self.sizex, 0)),
                           'right': Detector(self.get_center(), (0.6 * self.sizex, 0)),
                           'left': Detector(self.get_center(), (-0.6 * self.sizex, 0)),
                           'head': Detector(self.get_center(), (0, -0.6 * self.sizey)),
@@ -158,7 +158,7 @@ class Player:
 
         speed_factor = max(0.3, 8 * t.norm(self.speed) / u.distance_to_speed_per_updt(self.sizex))
 
-        if u.proba((speed_factor**2) * 10):
+        if u.proba((speed_factor**2) * 10) and 'dead' not in self.tags:
             anchor = t.Vadd(t.Vadd(vr.camera_coord, self.coord), (self.sizex/2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex), self.sizey/2 + t.rndInt(- 0.4 * self.sizey, 0.4 * self.sizey)))
             vr.map.ambient_elts.append(Particle('default', anchor, size=self.sizex, speed=self.speed, gravity=True))
 
@@ -204,15 +204,18 @@ class Player:
             self.acc[1] += u.distance_to_acc_per_updt(cf.player_down_acc)
         elif vr.inputs['UP']:
             if not in_the_air and 'jump_ready' in self.tags or 'can_double_jump' in self.tags:
-                self.speed[1] = min(-1 * jump_speed, self.speed[1])
                 self.remove_tag('jump_ready')
-                self.tags.add('jumping')
                 self.actions_timers['jump'] = vr.t
                 self.actions_counter['jump'] = 0
                 if 'can_double_jump' in self.tags:
+                    self.tags.add('double_jumping')
+                    self.speed[1] = min(-1 * jump_speed * cf.player_double_jump_power, self.speed[1])
                     self.remove_tag('can_double_jump')
                     if vr.inputs['RIGHT'] and self.speed[0] < 0: self.speed[0] = u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
                     if vr.inputs['LEFT'] and self.speed[0] > 0: self.speed[0] = -1 * u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
+                else:
+                    self.tags.add('jumping')
+                    self.speed[1] = min(-1 * jump_speed, self.speed[1]) # Normal Jump
             elif in_the_air:
                 self.actions_counter['side_jump'] = 0
                 if 'can_side_jump' in self.tags and 'solid' in self.detectors['right'].detection:
@@ -235,6 +238,12 @@ class Player:
                     self.actions_counter['jump'] += 1
                 else:
                     self.remove_tag('jumping')
+            elif 'double_jumping' in self.tags:
+                if self.actions_counter['jump'] < cf.player_jump_max_counter:
+                    self.speed[1] = min(-1 * jump_speed * cf.player_double_jump_power, self.speed[1])
+                    self.actions_counter['jump'] += 1
+                else:
+                    self.remove_tag('double_jumping')
 
         else:
             if in_the_air:
@@ -249,9 +258,10 @@ class Player:
                 self.remove_tag('can_double_jump')
                 self.remove_tag('can_side_jump')
             self.remove_tag('jumping')
+            self.remove_tag('double_jumping')
 
     def is_killed(self):
-        return 'spike' in self.all_detection
+        return (not self.all_detection.isdisjoint({'spike', 'bat'})) and (not vr.fly_mode)
 
     def respawn(self):
         self.decentralise = [0, 0]
@@ -269,7 +279,7 @@ class Player:
             anchor = t.Vadd(t.Vadd(self.coord, vr.camera_coord), (
             self.sizex / 2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex),
             self.sizey / 2 + t.rndInt(- 0.4 * self.sizey, 0.4 * self.sizey)))
-            max_speed = u.distance_to_speed_per_updt(10)
+            max_speed = u.distance_to_speed_per_updt(15)
             speed = (t.rndInt(-max_speed, max_speed), t.rndInt(-max_speed, max_speed))
             vr.map.ambient_elts.append(Particle('fire', anchor, size=4, speed=speed, gravity=True))
 
@@ -281,6 +291,8 @@ class Player:
         return self.sizex/2, self.sizey/2
     def get_center(self):
         return t.Vadd(self.coord, self.get_half_size())
+    def get_world_anchor(self):
+        return t.Vadd(vr.camera_coord, self.get_center())
     def get_all_detection(self):
         detection = set()
         for detector in self.detectors:
@@ -306,7 +318,7 @@ class Detector:
         self.detection = set()
         if not vr.world_area_obj.intersect(self.absolute_coord):
             self.detection.add('solid')
-        for obj in vr.map.geobjects:
+        for obj in vr.map.geobjects + vr.map.creatures:
             if t.distance(self.absolute_coord, obj.world_anchor) < obj.radius and obj.intersect(self.absolute_coord):
                 self.detection = self.detection.union(obj.tags)
 

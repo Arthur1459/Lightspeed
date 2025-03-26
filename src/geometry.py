@@ -2,7 +2,7 @@ import vars as vr
 import config as cf
 import tools as t
 import utils as u
-from visuals import blocks, spike
+from visuals import blocks_visuals, spike_visuals
 from ambient import Particle
 
 import pygame as pg
@@ -55,7 +55,7 @@ class Block(Geobject):
 
         self.tags.add('solid')
 
-        self.visuals = [pg.transform.scale(skin, self.size) for skin in blocks['metal']]
+        self.visuals = [pg.transform.scale(skin, self.size) for skin in blocks_visuals['metal']]
         self.visual = self.visuals[0]
 
     def update(self):
@@ -91,7 +91,7 @@ class Spike(Block):
         self.tags.add('solid')
         self.tags.add('spike')
 
-        self.visuals = [pg.transform.scale(frame, self.size) for frame in spike['frames']]
+        self.visuals = [pg.transform.scale(frame, self.size) for frame in spike_visuals['frames']]
         self.visual = self.visuals[vr.animation_cycles['spike']['index']]
 
     def get_type(self):

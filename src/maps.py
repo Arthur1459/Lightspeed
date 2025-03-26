@@ -3,6 +3,7 @@ import config as cf
 import tools as t
 import utils as u
 import geometry as geo
+import creatures as crt
 from ambient import Particle
 import pickle
 
@@ -13,8 +14,8 @@ class Map:
         self.name = name
 
         self.start_coord = cf.start_camera_coord
-        self.geobjects = []
-        self.content = {'geobjects': set()}
+        self.geobjects, self.creatures = [], []
+        self.content = {'geobjects': set(), 'creatures': set()}
 
         self.ambient_elts = []
         self.old_ambient_elts = []
@@ -43,35 +44,45 @@ class Map:
         geo_type, geo_data = 'block', (anchor, size)
         self.content['geobjects'].add((geo_type, geo_data))
         if update: self.reload_obj(geo_type, geo_data)
-    def add_geobject(self, anchor, points, update=False):
-        geo_type, geo_date = 'geobject', (anchor, points)
-        self.content['geobjects'].add((geo_type, geo_date))
-        if update: self.reload_obj(geo_type, geo_date)
-    def add(self, geo_type, geo_data, update=False):
+
+    def add_geobject(self, geo_type, geo_data, update=False):
         self.content['geobjects'].add((geo_type, geo_data))
         if update: self.reload_obj(geo_type, geo_data)
-    def remove(self, obj, obj_type='geobject'):
-        if obj_type == 'geobject':
+    def add_creature(self, creature_type, creature_data, update=False):
+        self.content['creatures'].add((creature_type, creature_data))
+        if update: self.reload_obj(creature_type, creature_data)
+
+    def remove(self, obj, obj_classification='geobject'):
+        if obj_classification == 'geobject':
             self.geobjects.remove(obj)
             self.content['geobjects'].remove((obj.get_type(), obj.get_data()))
+        elif obj_classification == 'creature':
+            self.creatures.remove(obj)
+            self.content['creatures'].remove((obj.get_type(), obj.get_data()))
         else:
             pass
+
     def reload_map(self):
-        self.geobjects = []
+        self.geobjects, self.creatures = [], []
         for geo_type, geo_data in self.content['geobjects']:
             self.reload_obj(geo_type, geo_data)
+        for creature_type, creature_data in self.content['creatures']:
+            self.reload_obj(creature_type, creature_data)
         vr.camera_coord = self.start_coord
 
-    def reload_obj(self, geo_type, geo_data):
-        if geo_type == 'block':
-            anchor, size = geo_data
+    def reload_obj(self, obj_type, obj_data):
+        if obj_type == 'block':
+            anchor, size = obj_data
             self.geobjects.append(geo.Block(anchor, size))
-        elif geo_type == 'geobject':
-            anchor, points = geo_data
+        elif obj_type == 'geobject':
+            anchor, points = obj_data
             self.geobjects.append(geo.Geobject(anchor, points))
-        elif geo_type == 'spike':
-            anchor, size = geo_data
+        elif obj_type == 'spike':
+            anchor, size = obj_data
             self.geobjects.append(geo.Spike(anchor, size))
+        elif obj_type == 'bat':
+            anchor = obj_data
+            self.creatures.append(crt.Bat(anchor))
 
     def save_map(self):
         with open(u.path(f"rsc/maps/{self.name}.pkl"), 'wb') as file:

@@ -10,10 +10,11 @@ click_minimal_duration = 0.1
 wait_key = vr.t
 
 toggle_placement = False
-blocks, blocks_index = ['block', 'spike'], 0
+blocks, blocks_index = ['block', 'spike', 'bat'], 0
+map_classification = {'geobject': 'geobject', 'block': 'geobject', 'spike': 'geobject', 'creature': 'creature', 'bat': 'creature'}
 block_type_to_place = 'block'
 medium_block_types = {'default', 'block'}
-small_block_types = {'spike'}
+small_block_types = {'spike', 'bat'}
 large_block_types = set()
 size_selected = cf.block_default_size
 
@@ -24,7 +25,7 @@ editor_selected_obj = None
 
 def editor_update():
     global toggle_placement, toggle_grid_magnet
-    global block_type_to_place, medium_block_types, small_block_types, large_block_types
+    global block_type_to_place, medium_block_types, small_block_types, large_block_types, map_classification
     global target_anchor, editor_selected_obj, size_selected
     global blocks, blocks_index
 
@@ -50,13 +51,15 @@ def editor_update():
         vr.info_txt = block_type_to_place
         if vr.inputs['CLICK'] and wait_for_key():
             if editor_selected_obj is not None and editor_selected_obj.size == (size_selected, size_selected):
-                vr.map.remove(editor_selected_obj)
+                vr.map.remove(editor_selected_obj, obj_classification=map_classification[editor_selected_obj.get_type()])
             else:
                 anchor = target_anchor if toggle_grid_magnet else t.Vadd(vr.camera_coord, t.Vcl(1, vr.cursor, -0.5, (size_selected, size_selected)))
                 if block_type_to_place == 'block':
                     vr.map.add_block(anchor, (size_selected, size_selected), update=True)
                 elif block_type_to_place == 'spike':
-                    vr.map.add('spike', (anchor, (size_selected, size_selected)), update=True)
+                    vr.map.add_geobject('spike', (anchor, (size_selected, size_selected)), update=True)
+                elif block_type_to_place == 'bat':
+                    vr.map.add_creature('bat', anchor, update=True)
                 elif block_type_to_place == 'default':
                     pass
                 else:

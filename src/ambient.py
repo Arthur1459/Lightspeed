@@ -2,7 +2,7 @@ import vars as vr
 import config as cf
 import tools as t
 import utils as u
-from visuals import particles
+from visuals import particles_visuals
 
 import pygame as pg
 
@@ -35,7 +35,7 @@ class Particle(AmbientElt):
         self.persistence, self.creation_time = persistence, vr.t
         self.alpha, self.alpha_0 = alpha, alpha
 
-        self.visuals, self.frames_duration = [pg.transform.scale(frame, self.size).convert_alpha() for frame in particles[self.name]['frames']], particles[self.name]['duration']
+        self.visuals, self.frames_duration = [pg.transform.scale(frame, self.size).convert_alpha() for frame in particles_visuals[self.name]['frames']], particles_visuals[self.name]['duration']
         self.visual, self.visual_index, self.visual_time = self.visuals[0], 0, vr.t
 
         self.alive = True
