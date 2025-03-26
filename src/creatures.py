@@ -84,7 +84,7 @@ class Bat(Creature):
     def update(self):
         super().update()
 
-        if t.distance(self.world_anchor, vr.player.get_world_anchor()) < cf.bat['action_radius']:
+        if t.distance(self.world_anchor, vr.player.get_world_anchor_centered()) < cf.bat['action_radius']:
             self.state = 'attack'
         else:
             self.state = 'default'
@@ -94,6 +94,6 @@ class Bat(Creature):
             if t.distance(self.world_anchor, self.world_anchor_base) > cf.bat['moving_radius']:
                 self.speed = t.Vadd(self.speed, t.Vmul(t.Vdir(self.world_anchor, self.world_anchor_base), t.inv(vr.dt_update) * cf.bat['come_back_speed']))
         elif self.state == 'attack':
-            self.speed = t.Vmul(t.Vdir(self.world_anchor, vr.player.get_world_anchor()), u.distance_to_speed_per_updt(cf.bat['speed_attack']))
+            self.speed = t.Vmul(t.Vdir(self.get_center(), vr.player.get_world_anchor_centered()), u.distance_to_speed_per_updt(cf.bat['speed_attack']))
 
         self.world_anchor = t.Vcl(1, self.world_anchor, vr.dt_update, self.speed)

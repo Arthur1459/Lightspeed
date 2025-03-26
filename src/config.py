@@ -48,7 +48,12 @@ player_down_acc = 1
 player_air_control = 0.6
 player_ground_friction = 0.85
 player_air_friction = 0.95
+player_grapple_reload = 0.5
+player_grapple_speed = 1
+player_grapple_max_length, player_grapple_min_length = 350, 100
+player_grapple_force = 1.8
+player_grapple_size = (12, 12)
 
 # Creatures
-bat = {'action_radius': 200, 'moving_radius': 100, 'size': 50, 'speed_default': 0.5, 'speed_attack': 2, 'come_back_speed': 0.5}
+bat = {'action_radius': 200, 'moving_radius': 50, 'size': 75, 'speed_default': 0.5, 'speed_attack': 2, 'come_back_speed': 0.5}
 

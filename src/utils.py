@@ -31,6 +31,7 @@ def getInputs():
     vr.inputs["S"] = True if keys[pg.K_s] else False
     vr.inputs["F"] = True if keys[pg.K_f] else False
     vr.inputs["R"] = True if keys[pg.K_r] else False
+    vr.inputs["E"] = True if keys[pg.K_e] else False
 
     if vr.controller is not None:
         nb_axes = vr.controller.get_numaxes()

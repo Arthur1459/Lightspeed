@@ -25,7 +25,8 @@ player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/sta
                   'fall': {'duration': 1, 'frames': load_folder("player/fall", resize=cf.player_size, flip=(False, False))},
                   'slide_right': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(False, False))},
                   'slide_left': {'duration': 0.05, 'frames': load_folder("player/slide", resize=cf.player_size, flip=(True, False))},
-                  'dead': {'duration': 0, 'frames': [img('empty.png')]}}
+                  'dead': {'duration': 0, 'frames': [img('empty.png')]},
+                  'grapple': {'duration': 0, 'frames':  [img('player/grapple/grapple_0.png', resize=cf.player_grapple_size)]}}
 
 blocks_visuals = {'metal': load_folder("blocks/metal_blocks")}
 spike_visuals = {'frames': load_folder("blocks/fire_blocks"), 'duration': 0.15}

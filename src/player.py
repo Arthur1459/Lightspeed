@@ -25,7 +25,9 @@ class Player:
         self.visuals = player_visuals
         self.visual, self.visual_index, self.visual_time, self.visual_duration = self.visuals[self.states]['frames'][0], 0, 0, self.visuals[self.states]['duration']
 
-        self.actions_timers = {'jump': 0, 'respawn': 0}
+        self.grapple = GrappleHook()
+
+        self.actions_timers = {'jump': 0, 'respawn': 0, 'grapple': 0}
         self.actions_counter = {'jump': 0, 'double_jump': 1, 'side_jump': 0}
         self.player_power_acc = 0
 
@@ -179,6 +181,16 @@ class Player:
             elif vr.inputs['UP']: self.speed[1] = -1 * u.distance_to_speed_per_updt(10)
             return
 
+        if vr.inputs['SPACE']:
+            self.launch_grapple()
+        else:
+            self.retract_grapple()
+        self.grapple.update(self.get_center())
+        if self.grapple.state == 'caught':
+            self.acc = t.Vadd(self.acc, t.Vmul(t.Vdir(self.get_center(), self.grapple.target_anchor), u.distance_to_acc_per_updt(cf.player_grapple_force)))
+            self.tags.add('can_double_jump')
+            return
+
         in_the_air = 'on_ground' not in self.tags
         max_acc = u.distance_to_acc_per_updt(cf.player_max_acc)
         if vr.inputs['RIGHT'] and 'solid' not in self.detectors['right'].detection:
@@ -260,8 +272,29 @@ class Player:
             self.remove_tag('jumping')
             self.remove_tag('double_jumping')
 
+    def launch_grapple(self):
+        if vr.t - self.actions_timers['grapple'] > cf.player_grapple_reload and 'grappling' not in self.tags:
+            self.actions_timers['grapple'] = vr.t
+            self.tags.add('grappling')
+            direction = [0, 0]
+            if vr.inputs['UP']:
+                direction[1] = -1
+            elif vr.inputs['DOWN']:
+                direction[1] = 1
+            if vr.inputs['RIGHT']:
+                direction[0] = 1
+            elif vr.inputs['LEFT']:
+                direction[0] = -1
+            if direction == [0, 0]: direction = [0, -1]
+            self.grapple.launch(direction)
+        return
+
+    def retract_grapple(self):
+        self.grapple.retract()
+        self.remove_tag('grappling')
+
     def is_killed(self):
-        return (not self.all_detection.isdisjoint({'spike', 'bat'})) and (not vr.fly_mode)
+        return (not all((self.all_detection.isdisjoint({'spike'}), self.detectors['body'].detection.isdisjoint({'bat'})))) and (not vr.fly_mode)
 
     def respawn(self):
         self.decentralise = [0, 0]
@@ -270,7 +303,7 @@ class Player:
         self.acc = [0, 0]
         self.tags = set()
         self.states = 'stand'
-        self.actions_timers = {'jump': 0}
+        self.actions_timers = {'jump': 0, 'respawn': 0, 'grapple': 0}
         self.actions_counter = {'jump': 0, 'double_jump': 1, 'side_jump': 0}
         self.player_power_acc = 0
 
@@ -291,7 +324,7 @@ class Player:
         return self.sizex/2, self.sizey/2
     def get_center(self):
         return t.Vadd(self.coord, self.get_half_size())
-    def get_world_anchor(self):
+    def get_world_anchor_centered(self):
         return t.Vadd(vr.camera_coord, self.get_center())
     def get_all_detection(self):
         detection = set()
@@ -301,6 +334,46 @@ class Player:
 
     def draw(self):
         vr.window.blit(self.visual, self.coord)
+
+        if self.grapple.state in ('launched', 'caught'):
+            pg.draw.line(vr.window, (120, 90, 10), self.get_center(), self.grapple.target_anchor, 3)
+            vr.window.blit(self.visuals['grapple']['frames'][0], self.grapple.get_top_left())
+            #pg.draw.rect(vr.window, (180, 150, 50), [self.grapple.target_anchor[0] - 4, self.grapple.target_anchor[1] - 4, 8, 8], 3)
+
+class GrappleHook:
+    def __init__(self):
+        self.target_anchor = vr.middle
+        self.length = 0
+        self.direction = (0, 0)
+        self.state = 'stored'
+
+        self.detector = Detector(self.target_anchor, (0, 0))
+
+    def launch(self, direction):
+        self.direction = direction
+        self.state = 'launched'
+    def retract(self):
+        self.length = 0
+        self.state = 'stored'
+        self.target_anchor = vr.middle
+    def get_top_left(self):
+        return t.Vcl(1, self.target_anchor, -0.5, cf.player_grapple_size)
+    def update(self, player_coord):
+
+        if self.state == 'launched':
+            self.length = min(self.length + u.distance_to_speed_per_updt(cf.player_grapple_speed), cf.player_grapple_max_length)
+            self.target_anchor = t.Vcl(1, player_coord, self.length, self.direction)
+            self.detector.update(self.target_anchor)
+        elif self.state == 'caught':
+            self.target_anchor = u.adapt_to_view(self.detector.absolute_coord)
+            self.length = t.distance(player_coord, self.target_anchor)
+
+        if self.state == 'launched':
+            if 'solid' in self.detector.detection:
+                self.state = 'caught'
+
+        if self.length == cf.player_grapple_max_length:
+            self.retract()
 
 class Detector:
     def __init__(self, anchor, relative_coord):

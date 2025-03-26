@@ -1,7 +1,7 @@
 make-app:
 	pyinstaller -F --noconsole \
+				--add-data "rsc/*.*:rsc/" \
 				--add-data "rsc/maps/*.pkl:rsc/maps/" \
-			  	--add-data "rsc/*.*:rsc/" \
 			  	--add-data "rsc/visuals/*.*:rsc/visuals/" \
 			  	--add-data "rsc/visuals/player/stand/*.png:rsc/visuals/player/stand/" \
 			  	--add-data "rsc/visuals/player/run/*.png:rsc/visuals/player/run/" \
@@ -9,6 +9,7 @@ make-app:
 			  	--add-data "rsc/visuals/player/fall/*.png:rsc/visuals/player/fall/" \
 			  	--add-data "rsc/visuals/player/slide/*.png:rsc/visuals/player/slide/" \
 			  	--add-data "rsc/visuals/player/dead/*.png:rsc/visuals/player/dead/" \
+			  	--add-data "rsc/visuals/player/grapple/*.png:rsc/visuals/player/grapple/" \
 			  	--add-data "rsc/visuals/blocks/metal_blocks/*.png:rsc/visuals/blocks/metal_blocks/" \
 			  	--add-data "rsc/visuals/blocks/fire_blocks/*.png:rsc/visuals/blocks/fire_blocks/" \
 			  	--add-data "rsc/visuals/blocks/fire_blocks/*.png:rsc/visuals/blocks/fire_blocks/" \

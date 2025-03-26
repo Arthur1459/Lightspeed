@@ -120,6 +120,7 @@ def update():
     if cf.editor_mode:
         editor_update()
         editor_draw()
+    if vr.inputs['E'] and me.wait_for_key(): cf.editor_mode = False if cf.editor_mode else True
 
     test_at_update()
     return
@@ -140,8 +141,8 @@ def pre_update():
     return
 
 def post_update():
-    u.Text("fps : " + str(round(vr.fps, 1)), (10, vr.win_height - 24), 14, 'orange')
-    u.Text("info : " + str(vr.info_txt), (10, vr.win_height - 48), 14, 'orange')
+    u.Text("fps : " + str(round(vr.fps, 1)), (10, vr.win_height - 18), 12, 'orange')
+    if cf.editor_mode: u.Text("info : " + str(vr.info_txt), (10, vr.win_height - 48), 14, 'orange')
     pg.display.update()
     return
 
