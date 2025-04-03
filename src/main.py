@@ -1,6 +1,3 @@
-import torch.nn.init
-import torch.onnx.symbolic_opset9
-
 from game_manager import *
 from visuals import img
 from utils import path
