@@ -34,7 +34,6 @@ download-requirements:
 	pip3 install glob2
 	pip3 install opencv-python
 	pip3 install pygame
-	pip3 install torch
 
 tag-executable:
 	chmod +x "./dist/Lightspeed"
