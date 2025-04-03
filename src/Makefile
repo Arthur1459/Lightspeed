@@ -27,9 +27,14 @@ make-app: download-requirements
 			  	\
 			  	--add-data "rsc/misc/*.*:rsc/misc/" \
 			  	main.py
+	$(MAKE) tag-executable
 
 download-requirements:
 	pip3 install pyinstaller
 	pip3 install glob2
 	pip3 install opencv-python
 	pip3 install pygame
+
+tag-executable:
+	chmod +x "./dist/Lightspeed"
+	chmod +x "./dist/Lightspeed.app"
