@@ -10,7 +10,7 @@ First of all **clone / download this repository**:
 
 Then two possibilities :
 
-- Create the **executable** : (! only tested in Mac M1 !)
+- Create the **executable** : (! only tested on Mac M1 !)
   1. make sure to have `python3` and so `pip3` installed on your computer.
   2. make sur to have installed `make` 
      - linux `sudo apt-get make`
