@@ -80,11 +80,11 @@ def editor_draw():
 
     if editor_selected_obj is not None:
         coord = u.adapt_to_view(editor_selected_obj.world_anchor)
-        pg.draw.rect(vr.window, 'yellow', (coord[0], coord[1], editor_selected_obj.sizex(), editor_selected_obj.sizey()), 3)
+        pg.draw.rect(vr.game_window, 'yellow', (coord[0], coord[1], editor_selected_obj.sizex(), editor_selected_obj.sizey()), 3)
 
     if toggle_placement:
         topleft = u.adapt_to_view(target_anchor) if toggle_grid_magnet else t.Vcl(1, vr.cursor, -0.5, (size_selected, size_selected))
-        pg.draw.rect(vr.window, 'red', (topleft[0], topleft[1], size_selected, size_selected), 2)
+        pg.draw.rect(vr.game_window, 'red', (topleft[0], topleft[1], size_selected, size_selected), 2)
 
     return
 

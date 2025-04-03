@@ -1,15 +1,16 @@
 # Game configuration (Must be non-mutable)
 
-game_name = "Game Name"
+game_name = "Lightspeed"
 version = 1.0
 
-fullscreen = False
+fullscreen = True
 fps = 60
 fps_treshold = 0.5
 
 world_size = (20_000, 5_000)
-view_size = (1_200, 800)
-worldborder = (600, 400)
+view_size = (1_280, 720)
+
+worldborder = (view_size[0]//2, view_size[1]//2)
 
 # Modes
 fly_mode = False

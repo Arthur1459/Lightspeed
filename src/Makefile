@@ -1,7 +1,9 @@
 make-app:
-	pyinstaller -F --noconsole \
+	pyinstaller -F --noconsole -i="./rsc/misc/icon.png" --name "Lightspeed"\
 				--add-data "rsc/*.*:rsc/" \
+				\
 				--add-data "rsc/maps/*.pkl:rsc/maps/" \
+				\
 			  	--add-data "rsc/visuals/*.*:rsc/visuals/" \
 			  	--add-data "rsc/visuals/player/stand/*.png:rsc/visuals/player/stand/" \
 			  	--add-data "rsc/visuals/player/run/*.png:rsc/visuals/player/run/" \
@@ -20,4 +22,8 @@ make-app:
 			  	--add-data "rsc/visuals/creatures/bat/*.png:rsc/visuals/creatures/bat/" \
 			  	\
 			  	--add-data "rsc/sounds/musics/ingame/*.mp3:rsc/sounds/musics/ingame/" \
+			  	\
+			  	--add-data "rsc/videos/*.mp4:rsc/videos/" \
+			  	\
+			  	--add-data "rsc/misc/*.*:rsc/misc/" \
 			  	main.py

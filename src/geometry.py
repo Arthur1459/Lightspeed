@@ -33,7 +33,7 @@ class Geobject:
             self.points_win[i] = u.adapt_to_view(t.Vadd(self.world_anchor, point))
 
     def draw(self):
-        pg.draw.polygon(vr.window, 'yellow', self.points_absolute, 4)
+        pg.draw.polygon(vr.game_window, 'yellow', self.points_absolute, 4)
 
     def intersect(self, absolute_coord, poly_type='rectangle'):
         if poly_type == 'rectangle':
@@ -81,7 +81,7 @@ class Block(Geobject):
     def get_size(self):
         return self.sizex(), self.sizey()
     def draw(self):
-        vr.window.blit(self.visual, u.adapt_to_view(self.world_anchor))
+        vr.game_window.blit(self.visual, u.adapt_to_view(self.world_anchor))
 
 class Spike(Block):
     def __init__(self, anchori=(1200, 1000), size=(50, 50)):
@@ -98,7 +98,7 @@ class Spike(Block):
         return 'spike'
     def draw(self):
         self.visual = self.visuals[vr.animation_cycles['spike']['index']]
-        vr.window.blit(self.visual, u.adapt_to_view(self.world_anchor))
+        vr.game_window.blit(self.visual, u.adapt_to_view(self.world_anchor))
 
         if u.proba(20):
             anchor = t.Vadd(self.world_anchor, (self.sizex()/2 + t.rndInt(-0.2 * self.sizex(), 0.2 * self.sizex()), self.sizey()/2 + t.rndInt(- 0.4 * self.sizey(), 0.4 * self.sizey())))

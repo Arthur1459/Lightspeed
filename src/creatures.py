@@ -28,7 +28,7 @@ class Creature:
             self.visual_index = (self.visual_index + 1) % len(self.visuals)
             self.visual = self.visuals[self.visual_index]
     def draw(self):
-        vr.window.blit(self.visual, u.adapt_to_view(self.world_anchor))
+        vr.game_window.blit(self.visual, u.adapt_to_view(self.world_anchor))
 
     def get_type(self):
         return 'creature'

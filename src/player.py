@@ -333,11 +333,12 @@ class Player:
         return detection
 
     def draw(self):
-        vr.window.blit(self.visual, self.coord)
-
+        vr.game_window.blit(self.visual, self.coord)
+        #for detector in self.detectors:
+        #    self.detectors[detector].draw()
         if self.grapple.state in ('launched', 'caught'):
-            pg.draw.line(vr.window, (120, 90, 10), self.get_center(), self.grapple.target_anchor, 3)
-            vr.window.blit(self.visuals['grapple']['frames'][0], self.grapple.get_top_left())
+            pg.draw.line(vr.game_window, (120, 90, 10), self.get_center(), self.grapple.target_anchor, 3)
+            vr.game_window.blit(self.visuals['grapple']['frames'][0], self.grapple.get_top_left())
             #pg.draw.rect(vr.window, (180, 150, 50), [self.grapple.target_anchor[0] - 4, self.grapple.target_anchor[1] - 4, 8, 8], 3)
 
 class GrappleHook:
@@ -396,4 +397,4 @@ class Detector:
                 self.detection = self.detection.union(obj.tags)
 
     def draw(self):
-        pg.draw.circle(vr.window, 'white' if len(self.detection) == 0 else 'red', u.adapt_to_view(self.absolute_coord), 4)
+        pg.draw.circle(vr.game_window, 'white' if len(self.detection) == 0 else 'red', u.adapt_to_view(self.absolute_coord), 4)

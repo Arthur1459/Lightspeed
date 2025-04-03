@@ -7,7 +7,8 @@ win_half_width, win_half_height = win_width/2, win_height/2
 middle = (win_width // 2, win_height // 2)
 camera_radius = ((win_width**2 + win_height**2)**0.5)/2
 
-window = None
+game_window = None
+displayed_window = None
 clock = None
 
 running = False
@@ -22,6 +23,13 @@ controller = None
 info_txt = ""
 id = 0
 
+# App
+app = None
+apps = {'main': None, 'others': []}
+transition = None
+in_transition = False
+
+# Game
 fly_mode = cf.fly_mode
 gravity = cf.gravity
 

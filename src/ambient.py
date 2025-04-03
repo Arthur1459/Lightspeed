@@ -22,7 +22,7 @@ class AmbientElt:
         pass
 
     def draw(self):
-        pg.draw.circle(vr.window, 'yellow', u.adapt_to_view(self.world_anchor), 5)
+        pg.draw.circle(vr.game_window, 'yellow', u.adapt_to_view(self.world_anchor), 5)
 
 class Particle(AmbientElt):
     def __init__(self, particle_name, anchori, persistence=1., size=32, alpha=250, speed=(0, 0), gravity=True, friction=0.9, spawn_on_death=(0,)):
@@ -56,4 +56,4 @@ class Particle(AmbientElt):
             self.alpha = max(0, self.alpha_0 * (1 - (vr.t - self.creation_time) / self.persistence))
             self.visual.set_alpha(self.alpha)
 
-            vr.window.blit(self.visual, u.adapt_to_view(t.Vcl(1, self.world_anchor, -0.5, self.size)))
+            vr.game_window.blit(self.visual, u.adapt_to_view(t.Vcl(1, self.world_anchor, -0.5, self.size)))

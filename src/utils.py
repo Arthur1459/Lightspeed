@@ -11,15 +11,21 @@ def path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-
-def Text(msg, coord, size, color):  # blit to the screen a text
+def Text(msg, coord, size, color, font_type='pixel'):  # blit to the screen a text
+    size = int(size)
     TextColor = pg.Color(color) # set the color of the text
-    font = pg.font.Font(path("rsc/pixel.ttf"), size)  # set the font
-    return vr.window.blit(font.render(msg, True, TextColor), coord)  # return and blit the text on the screen
+    if font_type == 'pixel': # set the font
+        font = pg.font.Font(path("rsc/pixel.ttf"), size)
+    elif font_type == 'robot': # set the font
+        font = pg.font.Font(path("rsc/Robot_Crush.ttf"), size)
+    else:
+        font = pg.font.Font(path("rsc/pixel.ttf"), size)
+    return vr.game_window.blit(font.render(msg, True, TextColor), coord)  # return and blit the text on the screen
 
 def getInputs():
     keys = pg.key.get_pressed()
     vr.inputs["SPACE"] = True if keys[pg.K_SPACE] else False
+    vr.inputs["ESC"] = True if keys[pg.K_ESCAPE] else False
 
     vr.inputs["UP"] = True if keys[pg.K_UP] else False
     vr.inputs["DOWN"] = True if keys[pg.K_DOWN] else False
@@ -32,6 +38,7 @@ def getInputs():
     vr.inputs["F"] = True if keys[pg.K_f] else False
     vr.inputs["R"] = True if keys[pg.K_r] else False
     vr.inputs["E"] = True if keys[pg.K_e] else False
+    vr.inputs["C"] = True if keys[pg.K_c] else False
 
     if vr.controller is not None:
         nb_axes = vr.controller.get_numaxes()
@@ -46,6 +53,9 @@ def getInputs():
                     if axis > 0: vr.inputs["DOWN"] = True
         for i in range(1, 3):
             if vr.controller.get_button(i) == 1: vr.inputs["UP"] = True
+
+    if vr.in_transition:
+        for key in vr.inputs: vr.inputs[key] = False
 
 def isInWindow(coord):
     if 0 <= coord[0] <= vr.win_width:
@@ -64,7 +74,7 @@ def keep_in_border(coord, delta=(cf.worldborder[0], cf.worldborder[0], cf.worldb
     return min(max(delta[0], x), wx - (delta[0] + delta[1])), min(max(delta[2], y), wy - (delta[2] + delta[3]))
 
 def drawSeg(seg):
-    pg.draw.line(vr.window, (20, 20, 100), seg(0), seg(1), 4)
+    pg.draw.line(vr.game_window, (20, 20, 100), seg(0), seg(1), 4)
 
 def getNewId():
     vr.id += 1
@@ -87,7 +97,7 @@ def distance_to_borders(coord, border=cf.worldborder):
 def draw_worldborder():
     if min_distance_to_border(get_view_center_coord()) < max(vr.win_half_width, vr.win_half_height):
         anchor = adapt_to_view(t.Vadd((0, 0), (vr.win_half_width, vr.win_half_height)))
-        pg.draw.rect(vr.window, 'red', [anchor[0], anchor[1], cf.world_size[0] - vr.win_width, cf.world_size[1] - vr.win_height], 2)
+        pg.draw.rect(vr.game_window, 'red', [anchor[0], anchor[1], cf.world_size[0] - vr.win_width, cf.world_size[1] - vr.win_height], 2)
 
 def distance_to_speed_per_updt(distance):
     return distance * t.inv(vr.dt_update)
@@ -101,7 +111,7 @@ def blur_background():
     color[0] = min(250, cf.back_base_color[0] * max(0.5, speed_factor))
     vr.mask_background.fill(color)
     vr.mask_background.set_alpha(max(cf.max_blur, min(255, int(255 * (1 - speed_factor)))))
-    vr.window.blit(vr.mask_background, (0, 0))
+    vr.game_window.blit(vr.mask_background, (0, 0))
 
 def proba(p):
     return t.rndInt(0, 100) < p
