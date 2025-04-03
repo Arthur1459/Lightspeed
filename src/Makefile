@@ -1,4 +1,5 @@
-make-app: download-requirements
+make-app:
+	$(MAKE) download-requirements
 	pyinstaller -F --noconsole -i="./rsc/misc/icon.png" --name "Lightspeed"\
 				--add-data "rsc/*.*:rsc/" \
 				\
