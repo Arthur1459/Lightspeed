@@ -1,4 +1,4 @@
-make-app:
+make-app: download-requirements
 	pyinstaller -F --noconsole -i="./rsc/misc/icon.png" --name "Lightspeed"\
 				--add-data "rsc/*.*:rsc/" \
 				\
@@ -27,3 +27,9 @@ make-app:
 			  	\
 			  	--add-data "rsc/misc/*.*:rsc/misc/" \
 			  	main.py
+
+download-requirements:
+	pip3 install pyinstaller
+	pip3 install glob2
+	pip3 install opencv-python
+	pip3 install pygame

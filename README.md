@@ -11,24 +11,20 @@ First of all **clone / download this repository**:
 Then two possibilities :
 
 - Create the **executable** : (! only tested in Mac M1 !)
-  1. make sure to have `python3` installed on your computer.
-  2. install the required libraries :
-     - ```pip3 install pygame```
-     - ```pip3 install opencv-python```
-     - ```pip3 install glob2```
-     - ```pip3 install pyinstaller```
-  3. make sur to have installed `make` 
+  1. make sure to have `python3` and so `pip3` installed on your computer.
+  2. make sur to have installed `make` 
      - linux `sudo apt-get make`
      - mac `brew install make`
+  3. in a terminal go to  `lightspeed/src`
   4. create the executable : ``make make-app``
   5. launch the app created in the `/src/dist` folder.
 
 
 - Launch the **main.py** file (should works for everyone):
   1. make sure to have `python3` installed on your computer.
-  3. install the required libraries :
-     - ```pip3 install pygame```
-     - ```pip3 install opencv-python```
-     - ```pip3 install glob2```
-  4. in a terminal go to  `lightspeed/src` or in files explorer.
+  2. make sur to have installed `make` 
+     - linux `sudo apt-get make`
+     - mac `brew install make`
+  3. in a terminal go to  `lightspeed/src`
+  4. install the required libraries : `make download-requirements`
   5. run `main.py` file with python : `python3 main.py`
