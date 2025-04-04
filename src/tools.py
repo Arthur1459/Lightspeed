@@ -54,3 +54,12 @@ def rndS():
 
 def rnd_choice(L):
     return L[rndInt(0, len(L))]
+
+def duo(x):
+    return (x, x)
+
+def intersect_box(coord, box):
+    xm, ym = box[0]
+    xM, yM = box[1]
+    xt, yt = coord
+    return xm < xt < xM and ym < yt < yM

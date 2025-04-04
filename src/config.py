@@ -12,10 +12,11 @@ view_size = (1_280, 720)
 
 worldborder = (view_size[0]//2, view_size[1]//2)
 
-# Modes
+# Settings
 fly_mode = False
-editor_mode = True
+allow_editor_mode = True
 controller_threshold = 0.1
+show_fps = True
 
 # World
 gravity = 1.5
@@ -56,5 +57,5 @@ player_grapple_force = 1.8
 player_grapple_size = (12, 12)
 
 # Creatures
-bat = {'action_radius': 200, 'moving_radius': 50, 'size': 75, 'speed_default': 0.5, 'speed_attack': 2, 'come_back_speed': 0.5}
+bat = {'action_radius': 200, 'moving_radius': 50, 'size': 50, 'speed_default': 0.5, 'speed_attack': 2, 'come_back_speed': 0.5}
 

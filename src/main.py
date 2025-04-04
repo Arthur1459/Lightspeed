@@ -31,6 +31,7 @@ def init():
 
     vr.app = Menu()
     vr.apps['main'] = vr.app
+    vr.apps['others'].append(Gui())
 
     return
 
@@ -76,7 +77,9 @@ def main():
     return
 
 def update():
-    vr.cursor = pg.mouse.get_pos()
+    cursor_in_win = pg.mouse.get_pos()
+    win_sizex, win_sizey = vr.displayed_window.get_size()
+    vr.cursor = cursor_in_win[0] * vr.win_width / win_sizex, cursor_in_win[1] * vr.win_height / win_sizey
 
     vr.apps['main'].update()
     for app in vr.apps['others']:

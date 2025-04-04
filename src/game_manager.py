@@ -14,6 +14,7 @@ import map_editor as me
 from visuals import sync_animations_cycles
 import SoundsManagement as sm
 from visuals import img, load_folder
+import gui
 
 class App:
     def __init__(self):
@@ -83,6 +84,18 @@ class Transition(App):
     def middle(self):
         return self.frames_counter == self.half_nb_frames
 
+class Gui(App):
+    def __init__(self):
+        super().__init__()
+        self.name = 'gui'
+        self.gui_elements = {'fps': gui.Displayer((vr.win_width * 0.023, vr.win_height * 0.985), (75, 15), round(vr.fps, 1), shiftx=0.2, shifty=0.08, text_size=12)}
+
+    def update(self):
+        if cf.show_fps: self.gui_elements['fps'].update(vr.fps, rounding=1, unit='fps')
+
+    def post_update(self):
+        if cf.show_fps: self.gui_elements['fps'].draw()
+
 class Game(App):
     def __init__(self):
         super().__init__()
@@ -110,25 +123,22 @@ class Game(App):
             if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
                 obj.update()
                 obj.draw()
-            if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(
-                    cursor_world_coord) and obj.get_size() == (me.size_selected, me.size_selected):
+            if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_type() in me.types_classification[me.current_targeted_type]:
                 me.editor_selected_obj = obj
 
         for obj in vr.map.creatures:
             if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
                 obj.update()
                 obj.draw()
-                if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(
-                        cursor_world_coord) and obj.get_size() == (me.size_selected, me.size_selected):
+                if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_type() in me.types_classification[me.current_targeted_type]:
                     me.editor_selected_obj = obj
 
         vr.player.update()
         vr.player.draw()
 
-        if cf.editor_mode:
+        if cf.allow_editor_mode:
             editor_update()
             editor_draw()
-        if vr.inputs['E'] and me.wait_for_key(): cf.editor_mode = False if cf.editor_mode else True
 
     def pre_update(self):
         if vr.inputs['ESC']:
@@ -148,7 +158,7 @@ class Game(App):
 
     def post_update(self):
         u.Text("fps : " + str(round(vr.fps, 1)), (10, vr.win_height - 18), 12, 'orange')
-        if cf.editor_mode: u.Text("info : " + str(vr.info_txt), (10, vr.win_height - 48), 14, 'orange')
+        if cf.allow_editor_mode: u.Text("info : " + str(vr.info_txt), (10, vr.win_height - 48), 14, 'orange')
         pg.display.update()
 
 class Menu(App):
@@ -160,6 +170,8 @@ class Menu(App):
         self.movie_shape = self.movie.read()[1].shape[1::-1]
 
         self.title = img(u.path('rsc/misc/lightspeed_title.png'), resize=(vr.win_width * 0.8, vr.win_height * 0.25), full_path=True)
+
+        self.gui_elements = {}
 
     def update(self):
 
@@ -191,12 +203,25 @@ class Settings(App):
         super().__init__()
         self.name = 'settings'
 
+        self.gui_elements = {'menu': gui.PressButton((vr.win_width * 0.045, vr.win_height * 0.03), (100, 30), 'menu', shiftx=0.25, shifty=0.15, callback=self.back_callback),
+                             'toggle_fps': gui.PressButton((vr.win_width * 0.25, vr.win_height * 0.3), (200, 40), 'show fps', text_size=24, shiftx=0.2, shifty=0.1, callback=self.fps_callback)}
+
     def update(self):
+
+        for elt_name in self.gui_elements:
+            self.gui_elements[elt_name].update()
+            self.gui_elements[elt_name].draw()
+
         u.Text('Settings', (vr.win_width * 0.13, vr.win_height * 0.13), 48, 'white', font_type='robot')
 
     def pre_update(self):
         vr.game_window.fill('black')
         if vr.inputs['ESC']: Transition(Menu(), duration=0.5)
+
+    def back_callback(self):
+        Transition(Menu(), duration=0.5)
+    def fps_callback(self):
+        cf.show_fps = False if cf.show_fps else True
 
     def post_update(self):
         pass

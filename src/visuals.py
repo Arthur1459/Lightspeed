@@ -1,4 +1,5 @@
 import config as cf
+import tools as t
 from utils import path
 import pygame.image as pgi
 import pygame.transform as pgt
@@ -34,6 +35,6 @@ particles_visuals = {'default': {'frames': load_folder("particles/default"), 'du
              'fire': {'frames': load_folder("particles/fire"), 'duration': 0.1},
              'void': {'frames': load_folder("particles/void"), 'duration': 0.2},
              'star': {'frames': load_folder("particles/star"), 'duration': 1.}}
-creatures_visuals = {'bat': {'frames': load_folder("creatures/bat"), 'duration': 0.05}}
+creatures_visuals = {'bat': {'frames': load_folder("creatures/bat", resize=t.duo(cf.bat['size'])), 'duration': 0.05}}
 
 sync_animations_cycles = [('spike', spike_visuals)]
