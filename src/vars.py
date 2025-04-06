@@ -14,7 +14,7 @@ clock = None
 running = False
 
 # In game
-inputs = {}
+inputs = {'CLICK_PRESSED': False} # Put here if it must be initialised before getInputs()
 fps = cf.fps
 dt_update, t = 1 / fps, 0
 

@@ -36,7 +36,7 @@ def editor_update():
     global target_anchor, editor_selected_obj, current_targeted_type
     global blocks, blocks_index
 
-    if vr.inputs['E'] and wait_for_key() and cf.allow_editor_mode:
+    if vr.inputs['E'] and wait_for_key():
         toggle_editor = False if toggle_editor else True
     if not toggle_editor: return
 
@@ -78,15 +78,14 @@ def editor_update():
         print("Map Saved.")
 
     if vr.inputs['F'] and wait_for_key():
-        vr.fly_mode = False if vr.fly_mode else True
-        vr.gravity = 0 if vr.fly_mode else cf.gravity
+        u.toggle_fly_mode()
 
     return
 
 def editor_draw():
     global target_anchor
     global toggle_editor, toggle_grid_magnet
-    global types_sizes, current_targeted_type
+    global types_sizes, current_targeted_type, current_block_type_to_place
 
     if toggle_editor:
         if editor_selected_obj is not None:
@@ -95,6 +94,8 @@ def editor_draw():
 
         topleft = u.adapt_to_view(target_anchor) if toggle_grid_magnet else t.Vcl(1, vr.cursor, -0.5, (types_sizes[current_targeted_type], types_sizes[current_targeted_type]))
         pg.draw.rect(vr.game_window, 'red', (topleft[0], topleft[1], types_sizes[current_targeted_type], types_sizes[current_targeted_type]), 2)
+
+        u.Text(f"[editor] place/remove selection : {current_block_type_to_place}", (10, vr.win_height - 48), 14, 'orange')
 
     return
 

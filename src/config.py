@@ -1,7 +1,7 @@
 # Game configuration (Must be non-mutable)
 
 game_name = "Lightspeed"
-version = 1.0
+version = "beta 1.0"
 
 fullscreen = True
 fps = 60
@@ -14,7 +14,6 @@ worldborder = (view_size[0]//2, view_size[1]//2)
 
 # Settings
 fly_mode = False
-allow_editor_mode = True
 controller_threshold = 0.1
 show_fps = True
 
@@ -26,7 +25,7 @@ camera_follow_speed_tresh = 10
 start_camera_coord = (worldborder[0], world_size[1] - worldborder[1] - view_size[1])
 
 # Map
-max_blur = 90
+min_blur = 90
 back_base_color = [50, 20, 30]
 block_default_size = 100
 

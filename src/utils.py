@@ -110,8 +110,12 @@ def blur_background():
     color = cf.back_base_color[:]
     color[0] = min(250, cf.back_base_color[0] * max(0.5, speed_factor))
     vr.mask_background.fill(color)
-    vr.mask_background.set_alpha(max(cf.max_blur, min(255, int(255 * (1 - speed_factor)))))
+    vr.mask_background.set_alpha(max(cf.min_blur, min(255, int(255 * (1 - speed_factor)))))
     vr.game_window.blit(vr.mask_background, (0, 0))
+
+def toggle_fly_mode(set_on=None):
+    vr.fly_mode = set_on if (set_on is not None) else (False if vr.fly_mode else True)
+    vr.gravity = 0 if vr.fly_mode else cf.gravity
 
 def proba(p):
     return t.rndInt(0, 100) < p

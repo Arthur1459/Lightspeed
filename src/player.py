@@ -4,6 +4,7 @@ import tools as t
 import utils as u
 from visuals import player_visuals
 from ambient import Particle
+from SoundsManagement import PlayEffect
 
 import pygame as pg
 
@@ -216,6 +217,7 @@ class Player:
             self.acc[1] += u.distance_to_acc_per_updt(cf.player_down_acc)
         elif vr.inputs['UP']:
             if not in_the_air and 'jump_ready' in self.tags or 'can_double_jump' in self.tags:
+                PlayEffect('jump')
                 self.remove_tag('jump_ready')
                 self.actions_timers['jump'] = vr.t
                 self.actions_counter['jump'] = 0
@@ -274,6 +276,7 @@ class Player:
 
     def launch_grapple(self):
         if vr.t - self.actions_timers['grapple'] > cf.player_grapple_reload and 'grappling' not in self.tags:
+            PlayEffect('grapple_throw')
             self.actions_timers['grapple'] = vr.t
             self.tags.add('grappling')
             direction = [0, 0]
@@ -308,6 +311,7 @@ class Player:
         self.player_power_acc = 0
 
     def damage_taken_effect(self):
+        PlayEffect('player_death')
         for i in range(100):
             anchor = t.Vadd(t.Vadd(self.coord, vr.camera_coord), (
             self.sizex / 2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex),
@@ -371,6 +375,7 @@ class GrappleHook:
 
         if self.state == 'launched':
             if 'solid' in self.detector.detection:
+                PlayEffect('grapple_hit')
                 self.state = 'caught'
 
         if self.length == cf.player_grapple_max_length:

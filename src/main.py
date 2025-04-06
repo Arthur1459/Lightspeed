@@ -1,10 +1,12 @@
 from game_manager import *
 from visuals import img
 from utils import path
+from visuals import sync_animations_cycles
 
 def init():
 
     pg.init()
+    pg.mixer.init(channels=6)
     pg.display.set_caption(cf.game_name)
     pg.display.set_icon(img(path('rsc/misc/logo.png'), full_path=True))
 
@@ -13,9 +15,9 @@ def init():
 
     # screen initialisation
     if not cf.fullscreen:
-        vr.displayed_window = pg.display.set_mode(vr.window_size)
+        vr.displayed_window = pg.display.set_mode(vr.window_size, vsync=True)
     else:
-        vr.displayed_window = pg.display.set_mode(vr.window_size, pg.RESIZABLE)
+        vr.displayed_window = pg.display.set_mode(vr.window_size, pg.RESIZABLE, vsync=True)
 
     vr.clock = pg.time.Clock()
 
@@ -50,7 +52,7 @@ def main():
         frames_fps += 1
         vr.fps = frames_fps/(vr.t - t_fps)
         vr.dt_update = 1 / vr.fps if vr.fps != 0 else 0.1
-        if frames_fps > 1000:
+        if frames_fps > cf.fps:
             frames_fps, t_fps = 0, time.time()
 
         vr.inputs['CLICK'] = False
@@ -82,6 +84,7 @@ def update():
     vr.cursor = cursor_in_win[0] * vr.win_width / win_sizex, cursor_in_win[1] * vr.win_height / win_sizey
 
     vr.apps['main'].update()
+
     for app in vr.apps['others']:
         app.update()
 
@@ -91,9 +94,10 @@ def test_at_update():
     return
 
 def pre_update():
+    apps_ended = []
+
     vr.apps['main'].pre_update()
 
-    apps_ended = []
     for app in vr.apps['others']:
         app.pre_update()
         if app.ended():

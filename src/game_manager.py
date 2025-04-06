@@ -4,14 +4,14 @@ import tools as t
 import utils as u
 import vars as vr
 import config as cf
+import sound_config as scf
 import time
 
 from player import Player
 from geometry import Block, Geobject
-from maps import Map
+from maps import Map, Particle
 from map_editor import editor_update, editor_draw
 import map_editor as me
-from visuals import sync_animations_cycles
 import SoundsManagement as sm
 from visuals import img, load_folder
 import gui
@@ -21,14 +21,13 @@ class App:
         self.name = 'default'
 
     def update(self):
-        vr.info_txt = f'App : {self.name}'
+        pass
 
     def pre_update(self):
-        vr.game_window.fill('black')
+        pass
 
     def post_update(self):
-        u.Text("fps : " + str(round(vr.fps, 1)), (10, vr.win_height - 18), 12, 'orange')
-        u.Text("info : " + str(vr.info_txt), (10, vr.win_height - 48), 14, 'orange')
+        pass
 
     def ended(self):
         return False
@@ -136,8 +135,8 @@ class Game(App):
         vr.player.update()
         vr.player.draw()
 
-        if cf.allow_editor_mode:
-            editor_update()
+        editor_update()
+        if me.toggle_editor:
             editor_draw()
 
     def pre_update(self):
@@ -152,13 +151,11 @@ class Game(App):
             print("Map Reloaded.")
 
         u.blur_background()
-        u.draw_worldborder()
+        if me.toggle_editor: u.draw_worldborder()
         pg.draw.line(vr.game_window, 'black', u.adapt_to_view((0, cf.world_size[1] - cf.worldborder[1])),
                      u.adapt_to_view((cf.world_size[0], cf.world_size[1] - cf.worldborder[1])), 20)
 
     def post_update(self):
-        u.Text("fps : " + str(round(vr.fps, 1)), (10, vr.win_height - 18), 12, 'orange')
-        if cf.allow_editor_mode: u.Text("info : " + str(vr.info_txt), (10, vr.win_height - 48), 14, 'orange')
         pg.display.update()
 
 class Menu(App):
@@ -171,7 +168,12 @@ class Menu(App):
 
         self.title = img(u.path('rsc/misc/lightspeed_title.png'), resize=(vr.win_width * 0.8, vr.win_height * 0.25), full_path=True)
 
-        self.gui_elements = {}
+        self.gui_elements = {'quit': gui.PressButton((vr.win_width * 0.028, vr.win_height * 0.025), (60, 25), 'Quit', text_size=16, shiftx=0.22, shifty=0.12, callback=self.quit_callback, font='robot'),
+                             'play': gui.PressButton((vr.win_width * 0.5, vr.win_height * 0.5), (250, 85), '[ PLAY ]', text_size=56, shiftx=0.14, shifty=0.15, callback=self.play_callback, transparent=True, framed=True, font='robot', color='red'),
+                             'settings': gui.PressButton((vr.win_width * 0.5, vr.win_height * 0.65), (200, 50), '[ SETTINGS ]', text_size=32, shiftx=0.1, shifty=0.15, callback=self.settings_callback, transparent=True, framed=True, font='robot', color='red')}
+
+        sm.PlayMusic('menu')
+        sm.PlayEffect('back_menu')
 
     def update(self):
 
@@ -185,18 +187,31 @@ class Menu(App):
 
         vr.game_window.blit(pg.transform.scale(frame, vr.window_size), (0, 0))
         vr.game_window.blit(self.title, (vr.win_width * 0.12, vr.win_height * 0.13))
-        u.Text('Arthur1459', (vr.win_width * 0.13 + vr.win_width * 0.75 * 0.37, vr.win_height * 0.13 + vr.win_height * 0.25 * 1.1), 48, 'white', font_type='robot')
+        u.Text('By Arthur1459', (vr.win_width * 0.44, vr.win_height * 0.95), 24, 'white', font_type='robot')
 
-        u.Text('[ PLAY SPACE ]', (vr.win_width * 0.25, vr.win_height * 0.75), 32, 'red', font_type='robot')
-        u.Text('[ SETTINGS C ]', (vr.win_width * 0.6, vr.win_height * 0.75), 32, 'red', font_type='robot')
+        #u.Text('[ PLAY SPACE ]', (vr.win_width * 0.25, vr.win_height * 0.75), 32, 'red', font_type='robot')
+        #u.Text('[ SETTINGS C ]', (vr.win_width * 0.6, vr.win_height * 0.75), 32, 'red', font_type='robot')
+
+        for elt_name in self.gui_elements:
+            self.gui_elements[elt_name].update()
+            self.gui_elements[elt_name].draw()
 
     def pre_update(self):
-        if vr.inputs['SPACE']: Transition(Game(), duration=0.5)
-        if vr.inputs['C']: Transition(Settings(), duration=0.5)
-        if vr.inputs['ESC']: vr.running = False
+        vr.game_window.fill('black')
+        if vr.inputs['SPACE']: self.play_callback()
+        if vr.inputs['C']: self.settings_callback()
+        if vr.inputs['ESC']: self.quit_callback()
 
     def post_update(self):
         pass
+
+    def play_callback(self):
+        Transition(LevelSelection(), duration=0.5)
+    def settings_callback(self):
+        Transition(Settings(), duration=0.5)
+    def quit_callback(self):
+        print("\n##### Game Stopped #####\n")
+        vr.running = False
 
 class Settings(App):
     def __init__(self):
@@ -204,7 +219,14 @@ class Settings(App):
         self.name = 'settings'
 
         self.gui_elements = {'menu': gui.PressButton((vr.win_width * 0.045, vr.win_height * 0.03), (100, 30), 'menu', shiftx=0.25, shifty=0.15, callback=self.back_callback),
-                             'toggle_fps': gui.PressButton((vr.win_width * 0.25, vr.win_height * 0.3), (200, 40), 'show fps', text_size=24, shiftx=0.2, shifty=0.1, callback=self.fps_callback)}
+                             'toggle_fps': gui.SwitchButton((vr.win_width * 0.25, vr.win_height * 0.3), (40, 40), 'Show FPS', switch_on=cf.show_fps, text_size=24, shiftx=1.3, shifty=0.15, callback=self.fps_callback),
+                             'editor_mode': gui.SwitchButton((vr.win_width * 0.25, vr.win_height * 0.4), (40, 40), 'Editor Mode', switch_on=me.toggle_editor, text_size=24, shiftx=1.3, shifty=0.15, callback=self.editor_callback),
+                             'fly_mode': gui.SwitchButton((vr.win_width * 0.25, vr.win_height * 0.5), (40, 40), 'Fly Mode', switch_on=vr.fly_mode, text_size=24, shiftx=1.3, shifty=0.15, callback=self.fly_callback),
+                             'toggle_music': gui.SwitchButton((vr.win_width * 0.5, vr.win_height * 0.3), (40, 40), 'Music', switch_on=scf.sound_musics_mode, text_size=24, shiftx=1.3, shifty=0.15, callback=self.music_callback),
+                             'music_volume': gui.SlidingValue((vr.win_width * 0.5, vr.win_height * 0.4), (40, 40), value=scf.music_volume, val_unit="%", value_size=14, val_shiftx=0.13, val_shifty=0.3, msg='Volume Music', text_size=24, shiftx=1.3, shifty=0.15, callback=self.music_volume_callback),
+                             'toggle_sfx': gui.SwitchButton((vr.win_width * 0.5, vr.win_height * 0.5), (40, 40), 'Sound Effects', switch_on=scf.sound_effects_mode,  text_size=24, shiftx=1.3, shifty=0.15, callback=self.sfx_callback),
+                             'sfx_volume': gui.SlidingValue((vr.win_width * 0.5, vr.win_height * 0.6), (40, 40), value=scf.sfx_volume, val_unit="%", value_size=14, val_shiftx=0.13, val_shifty=0.3, msg='SFX Music', text_size=24, shiftx=1.3, shifty=0.15, callback=self.sfx_volume_callback)
+                             }
 
     def update(self):
 
@@ -220,8 +242,79 @@ class Settings(App):
 
     def back_callback(self):
         Transition(Menu(), duration=0.5)
-    def fps_callback(self):
-        cf.show_fps = False if cf.show_fps else True
+    def fps_callback(self, button_state):
+        cf.show_fps = button_state
+    def music_callback(self, button_state):
+        scf.sound_musics_mode = button_state
+        if scf.sound_musics_mode:
+            sm.PlayMusic(sm.current_playlist)
+        else:
+            sm.StopMusic()
+    def sfx_callback(self, button_state):
+        scf.sound_effects_mode = button_state
+    def editor_callback(self, button_state):
+        me.toggle_editor = button_state
+    def fly_callback(self, button_state):
+        u.toggle_fly_mode(set_on=button_state)
+    def music_volume_callback(self, volume):
+        scf.music_volume = volume
+        sm.updateVolume(scf.music_volume)
+    def sfx_volume_callback(self, volume):
+        scf.sfx_volume = volume
 
     def post_update(self):
         pass
+
+class LevelSelection(App):
+    def __init__(self):
+        super().__init__()
+        self.name = 'level selection'
+
+        self.gui_elements = {'menu': gui.PressButton((vr.win_width * 0.045, vr.win_height * 0.03), (100, 30), 'menu', shiftx=0.25, shifty=0.15, callback=self.back_callback),
+                             'lvl_test': gui.PressButton((vr.win_width * 0.2, vr.win_height * 0.27), (210, 60), 'Playground', text_size=32, font='robot', transparent=True, framed=True, shiftx=0.1, shifty=0.17, callback=self.play_callback)}
+
+        self.ambient_elts = []
+        self.old_ambient_elts = []
+
+        sm.PlayMusic('menu')
+
+        self.mask = pg.Surface(vr.game_window.get_size(), masks='black').convert_alpha()
+        self.mask.set_alpha(50)
+
+    def update(self):
+        if vr.inputs['ESC']: Transition(Menu(), duration=0.5)
+
+        for elt_name in self.gui_elements:
+            self.gui_elements[elt_name].update()
+            self.gui_elements[elt_name].draw()
+
+        u.Text('Levels', (vr.win_width * 0.12, vr.win_height * 0.12), 48, 'white', font_type='robot')
+
+    def pre_update(self):
+        vr.game_window.blit(self.mask, (0, 0))
+        self.update_and_draw_particle()
+        pg.draw.rect(vr.game_window, (110, 110, 110), (vr.win_width * 0.1, vr.win_height * 0.1, vr.win_width * 0.8, vr.win_height * 0.8), 10)
+        pg.draw.line(vr.game_window, (110, 110, 110), (vr.win_width * 0.102, vr.win_height * 0.2), (vr.win_width * 0.898, vr.win_height * 0.2), 10)
+
+        return
+
+    def post_update(self):
+        return
+
+    def update_and_draw_particle(self):
+        for ambient_elt in self.old_ambient_elts:
+            if ambient_elt in self.ambient_elts: self.ambient_elts.remove(ambient_elt)
+        self.old_ambient_elts = []
+
+        void_particle_max_speed = u.distance_to_speed_per_updt(0.2)
+        rnd_anchor = t.Vadd(vr.camera_coord, (t.rndInt(0, vr.win_width), t.rndInt(0, vr.win_height)))
+        self.ambient_elts.append(Particle('void', rnd_anchor, persistence=2., size=4, speed=(t.rndInt(-1 * void_particle_max_speed, 1 * void_particle_max_speed), t.rndInt(-1 * void_particle_max_speed, 1 * void_particle_max_speed))))
+
+        for ambient_obj in self.ambient_elts:
+            ambient_obj.draw()
+            if not ambient_obj.alive: self.old_ambient_elts.append(ambient_obj)
+
+    def play_callback(self, level=''):
+        Transition(Game(), duration=0.5)
+    def back_callback(self):
+        Transition(Menu(), duration=0.5)
