@@ -32,7 +32,7 @@ make-app:
 			  	--add-data "rsc/visuals/gui/SwitchButton/*.png:rsc/visuals/gui/SwitchButton/" \
 			  	\
 			  	--add-data "rsc/sounds/musics/ingame/*.mp3:rsc/sounds/musics/ingame/" \
-			  	--add-data "rsc/sounds/musics/ingame/*.mp3:rsc/sounds/musics/menu/" \
+			  	--add-data "rsc/sounds/musics/menu/*.mp3:rsc/sounds/musics/menu/" \
 			  	--add-data "rsc/sounds/sfx/*.mp3:rsc/sounds/sfx/" \
 			  	\
 			  	--add-data "rsc/videos/*.mp4:rsc/videos/" \

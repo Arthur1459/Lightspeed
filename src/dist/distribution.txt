@@ -1,1 +1,5 @@
 distribution folder
+
+Si tu n'as pas la permission d'executer les executable :
+- terminal ici (src/dist/)
+- chmod +x Lightspeed
