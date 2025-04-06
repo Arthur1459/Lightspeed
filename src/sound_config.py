@@ -13,7 +13,7 @@ def load_sfx():
     return {filepath.split('rsc/sounds/sfx/')[1].replace('.mp3', ''): soundpath(filepath, full_path=True) for filepath in sorted(files_paths)}
 
 music_volume = 50
-sound_musics_mode = True
+sound_musics_mode = False
 
 sfx_volume = 40
 sound_effects_mode = True

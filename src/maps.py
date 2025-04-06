@@ -5,20 +5,24 @@ import utils as u
 import geometry as geo
 import creatures as crt
 from ambient import Particle
-import pickle
+from visuals import misc_visuals
 
+import pickle
 import pygame as pg
 
 class Map:
     def __init__(self, name='default'):
         self.name = name
 
-        self.start_coord = cf.start_camera_coord
+        self.start_coord = t.Vadd(cf.start_camera_coord, vr.middle)
+        self.end_coord = cf.world_size
         self.geobjects, self.creatures = [], []
         self.content = {'geobjects': set(), 'creatures': set()}
 
         self.ambient_elts = []
         self.old_ambient_elts = []
+
+        self.completed = False
 
     def update(self):
         for animation in vr.animation_cycles:
@@ -40,6 +44,13 @@ class Map:
             self.reload_map()
             vr.player.respawn()
 
+        if t.distance(vr.player.get_center(world=True), t.Vadd(self.end_coord, t.duo(cf.block_default_size/2))) < t.norm(vr.player.get_size()) / 2:
+            self.completed = True
+
+    def draw_misc(self):
+        vr.game_window.blit(misc_visuals['start']['frames'][vr.animation_cycles['start/end']['index']], u.adapt_to_view(self.start_coord))
+        vr.game_window.blit(misc_visuals['end']['frames'][vr.animation_cycles['start/end']['index']], u.adapt_to_view(self.end_coord))
+
     def add_block(self, anchor, size, update=False):
         geo_type, geo_data = 'block', (anchor, size)
         self.content['geobjects'].add((geo_type, geo_data))
@@ -53,14 +64,17 @@ class Map:
         if update: self.reload_obj(creature_type, creature_data)
 
     def remove(self, obj, obj_classification='geobject'):
-        if obj_classification == 'geobject':
-            self.geobjects.remove(obj)
-            self.content['geobjects'].remove((obj.get_type(), obj.get_data()))
-        elif obj_classification == 'creature':
-            self.creatures.remove(obj)
-            self.content['creatures'].remove((obj.get_type(), obj.get_data()))
-        else:
-            pass
+        try:
+            if obj_classification == 'geobject':
+                self.geobjects.remove(obj)
+                self.content['geobjects'].remove((obj.get_type(), obj.get_data()))
+            elif obj_classification == 'creature':
+                self.creatures.remove(obj)
+                self.content['creatures'].remove((obj.get_type(), obj.get_data()))
+            else:
+                pass
+        except Exception as e:
+            print(f"ERROR while removing object ( {obj.get_type()}, {obj.get_data()} ) :\n {e}\n")
 
     def reload_map(self):
         self.geobjects, self.creatures = [], []
@@ -68,7 +82,7 @@ class Map:
             self.reload_obj(geo_type, geo_data)
         for creature_type, creature_data in self.content['creatures']:
             self.reload_obj(creature_type, creature_data)
-        vr.camera_coord = self.start_coord
+        vr.camera_coord = t.Vadd(t.Vdiff(self.start_coord, vr.middle), vr.player.get_size())
 
     def reload_obj(self, obj_type, obj_data):
         if obj_type == 'block':
@@ -84,14 +98,19 @@ class Map:
             anchor = obj_data
             self.creatures.append(crt.Bat(anchor))
 
-    def save_map(self):
-        with open(u.path(f"rsc/maps/{self.name}.pkl"), 'wb') as file:
-            self.start_coord = vr.camera_coord
-            datas = (self.start_coord, self.content)
+    def save_map(self, new=False):
+        with open(u.path(f"rsc/maps/{self.name if not new else 'new_save'}.pkl"), 'wb') as file:
+            datas = (self.start_coord, self.content, self.end_coord)
             pickle.dump(datas, file, pickle.HIGHEST_PROTOCOL)
 
     def load_map(self, name='default'):
+        self.name = name
         with open(u.path(f"rsc/maps/{name}.pkl"), 'rb') as file:
-            self.start_coord, self.content = pickle.load(file)
+            loaded_datas = pickle.load(file)
+        try: self.start_coord = loaded_datas[0]
+        except: raise "Start coord cannot be read !"
+        try: self.content = loaded_datas[1]
+        except: raise "Content cannot be read !"
+        try: self.end_coord = loaded_datas[2]
+        except: print("No end coord !")#raise "End coord cannot be read !"
         self.reload_map()
-

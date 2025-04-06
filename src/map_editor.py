@@ -10,13 +10,14 @@ click_minimal_duration = 0.1
 wait_key = vr.t
 
 toggle_editor = False
-blocks, blocks_index = ['block', 'spike', 'bat'], 0
+blocks, blocks_index = ['block', 'spike', 'bat', 'start_coord', 'end_coord'], 0
 map_classification = {'geobject': 'geobject', 'block': 'geobject', 'spike': 'geobject', 'creature': 'creature', 'bat': 'creature'}
 current_block_type_to_place = 'block'
 
 medium_block_types = {'default', 'block'}
 small_block_types = {'spike', 'bat'}
 large_block_types = set()
+other_block_type = {'end_coord', 'start_coord'}
 
 types_classification = {'large': large_block_types, 'medium': medium_block_types, 'small': small_block_types}
 types_sizes = {'large': cf.block_default_size * 2,
@@ -32,7 +33,7 @@ editor_selected_obj = None
 
 def editor_update():
     global toggle_editor, toggle_grid_magnet
-    global current_block_type_to_place, medium_block_types, small_block_types, large_block_types, map_classification
+    global current_block_type_to_place, medium_block_types, small_block_types, large_block_types, other_block_type, map_classification
     global target_anchor, editor_selected_obj, current_targeted_type
     global blocks, blocks_index
 
@@ -44,38 +45,49 @@ def editor_update():
         current_block_type_to_place = blocks[blocks_index]
         blocks_index = (blocks_index + 1) % len(blocks)
 
-    if toggle_grid_magnet:
-        if current_block_type_to_place in medium_block_types:
-            current_targeted_type = 'medium'
-        elif current_block_type_to_place in small_block_types:
-            current_targeted_type = 'small'
-        elif current_block_type_to_place in large_block_types :
-            current_targeted_type = 'large'
+    if current_block_type_to_place not in other_block_type:
+        if toggle_grid_magnet:
+                if current_block_type_to_place in medium_block_types:
+                    current_targeted_type = 'medium'
+                elif current_block_type_to_place in small_block_types:
+                    current_targeted_type = 'small'
+                elif current_block_type_to_place in large_block_types :
+                    current_targeted_type = 'large'
 
-        x, y = t.Vadd(vr.camera_coord, vr.cursor)
-        size_selected = types_sizes[current_targeted_type]
-        target_anchor = (x // size_selected) * size_selected, (y // size_selected) * size_selected
+                x, y = t.Vadd(vr.camera_coord, vr.cursor)
+                size_selected = types_sizes[current_targeted_type]
+                target_anchor = (x // size_selected) * size_selected, (y // size_selected) * size_selected
 
-    vr.info_txt = current_block_type_to_place
-    if vr.inputs['CLICK'] and wait_for_key():
-        if editor_selected_obj is not None:
-            vr.map.remove(editor_selected_obj, obj_classification=map_classification[editor_selected_obj.get_type()])
-        else:
-            anchor = target_anchor if toggle_grid_magnet else t.Vadd(vr.camera_coord, t.Vcl(1, vr.cursor, -0.5, (size_selected, size_selected)))
-            if current_block_type_to_place == 'block':
-                vr.map.add_block(anchor, (size_selected, size_selected), update=True)
-            elif current_block_type_to_place == 'spike':
-                vr.map.add_geobject('spike', (anchor, (size_selected, size_selected)), update=True)
-            elif current_block_type_to_place == 'bat':
-                vr.map.add_creature('bat', anchor, update=True)
-            elif current_block_type_to_place == 'default':
-                pass
+        vr.info_txt = current_block_type_to_place
+        if vr.inputs['CLICK'] and wait_for_key():
+            if editor_selected_obj is not None:
+                vr.map.remove(editor_selected_obj, obj_classification=map_classification[editor_selected_obj.get_type()])
             else:
-                print("# Error : unknown type block -> ", current_block_type_to_place)
+                anchor = target_anchor if toggle_grid_magnet else t.Vadd(vr.camera_coord, t.Vcl(1, vr.cursor, -0.5, (size_selected, size_selected)))
+                if current_block_type_to_place == 'block':
+                    vr.map.add_block(anchor, (size_selected, size_selected), update=True)
+                elif current_block_type_to_place == 'spike':
+                    vr.map.add_geobject('spike', (anchor, (size_selected, size_selected)), update=True)
+                elif current_block_type_to_place == 'bat':
+                    vr.map.add_creature('bat', anchor, update=True)
+                elif current_block_type_to_place == 'default':
+                    pass
+                else:
+                    print("# Error : unknown type block -> ", current_block_type_to_place)
+    else:
+        target_anchor = t.Vadd(vr.camera_coord, vr.cursor)
+        if vr.inputs['CLICK'] and wait_for_key():
+            if current_block_type_to_place == 'start_coord':
+                vr.map.start_coord = t.Vdiff(target_anchor, t.duo(cf.block_default_size/2))
+            elif current_block_type_to_place == 'end_coord':
+                vr.map.end_coord = t.Vdiff(target_anchor, t.duo(cf.block_default_size/2))
 
     if vr.inputs['S'] and wait_for_key(dt=0.2):
-        vr.map.save_map()
+        vr.map.save_map(new=False)
         print("Map Saved.")
+    if vr.inputs['D'] and wait_for_key(dt=0.2):
+        vr.map.save_map(new=True)
+        print("New Map Saved.")
 
     if vr.inputs['F'] and wait_for_key():
         u.toggle_fly_mode()

@@ -326,8 +326,11 @@ class Player:
         return self.sizex, self.sizey
     def get_half_size(self):
         return self.sizex/2, self.sizey/2
-    def get_center(self):
-        return t.Vadd(self.coord, self.get_half_size())
+    def get_center(self, world=False):
+        if world:
+            return t.Vadd(vr.camera_coord, t.Vadd(self.coord, self.get_half_size()))
+        else:
+            return t.Vadd(self.coord, self.get_half_size())
     def get_world_anchor_centered(self):
         return t.Vadd(vr.camera_coord, self.get_center())
     def get_all_detection(self):

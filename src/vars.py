@@ -39,6 +39,7 @@ world_area_obj = None
 
 player = None
 map = None
-animation_cycles = {'spike': {'t': 0, 'dt_threshold': 0, 'index': 0, 'max_index': 0}}
+animation_cycles = {'spike': {'t': 0, 'dt_threshold': 0, 'index': 0, 'max_index': 0},
+                    'start/end': {'t': 0, 'dt_threshold': 0, 'index': 0, 'max_index': 0}}
 
 

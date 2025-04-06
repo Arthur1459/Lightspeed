@@ -18,6 +18,7 @@ controller_threshold = 0.1
 show_fps = True
 
 # World
+nb_worlds = 4
 gravity = 1.5
 
 # Camera
@@ -51,7 +52,7 @@ player_ground_friction = 0.85
 player_air_friction = 0.95
 player_grapple_reload = 0.5
 player_grapple_speed = 1
-player_grapple_max_length, player_grapple_min_length = 350, 100
+player_grapple_max_length, player_grapple_min_length = 250, 100
 player_grapple_force = 1.8
 player_grapple_size = (12, 12)
 

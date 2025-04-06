@@ -6,6 +6,7 @@ import vars as vr
 import config as cf
 import sound_config as scf
 import time
+from glob import glob
 
 from player import Player
 from geometry import Block, Geobject
@@ -96,15 +97,17 @@ class Gui(App):
         if cf.show_fps: self.gui_elements['fps'].draw()
 
 class Game(App):
-    def __init__(self):
+    def __init__(self, level=None):
         super().__init__()
         self.name = 'Game'
+        self.level = level if level is not None else 'Playground'
+        self.level_completed = False
 
         vr.world_area_obj = Geobject((0, 0), ((cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.worldborder[1]), (cf.world_size[0] - cf.worldborder[0], cf.world_size[1] - cf.worldborder[1]), (cf.worldborder[0], cf.world_size[1] - cf.worldborder[1])))
 
         vr.player = Player()
         vr.map = Map()
-        vr.map.load_map()
+        vr.map.load_map(name=self.level)
 
         sm.PlayMusic('ingame')
 
@@ -131,6 +134,17 @@ class Game(App):
                 obj.draw()
                 if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_type() in me.types_classification[me.current_targeted_type]:
                     me.editor_selected_obj = obj
+
+        vr.map.draw_misc()
+
+        if not self.level_completed:
+            if vr.map.completed:
+                sm.PlayEffect('level_completed')
+                Transition(LevelSelection())
+                self.level_completed = True
+        else:
+            vr.player.draw()
+            return
 
         vr.player.update()
         vr.player.draw()
@@ -205,11 +219,11 @@ class Menu(App):
     def post_update(self):
         pass
 
-    def play_callback(self):
-        Transition(LevelSelection(), duration=0.5)
-    def settings_callback(self):
+    def play_callback(self, *args):
+        Transition(LevelSelection(worlds=(1, 4)), duration=0.5)
+    def settings_callback(self, *args):
         Transition(Settings(), duration=0.5)
-    def quit_callback(self):
+    def quit_callback(self, *args):
         print("\n##### Game Stopped #####\n")
         vr.running = False
 
@@ -240,7 +254,7 @@ class Settings(App):
         vr.game_window.fill('black')
         if vr.inputs['ESC']: Transition(Menu(), duration=0.5)
 
-    def back_callback(self):
+    def back_callback(self, *args):
         Transition(Menu(), duration=0.5)
     def fps_callback(self, button_state):
         cf.show_fps = button_state
@@ -266,12 +280,14 @@ class Settings(App):
         pass
 
 class LevelSelection(App):
-    def __init__(self):
+    def __init__(self, worlds=(1, 4)):
         super().__init__()
         self.name = 'level selection'
 
         self.gui_elements = {'menu': gui.PressButton((vr.win_width * 0.045, vr.win_height * 0.03), (100, 30), 'menu', shiftx=0.25, shifty=0.15, callback=self.back_callback),
-                             'lvl_test': gui.PressButton((vr.win_width * 0.2, vr.win_height * 0.27), (210, 60), 'Playground', text_size=32, font='robot', transparent=True, framed=True, shiftx=0.1, shifty=0.17, callback=self.play_callback)}
+                             'Playground': gui.PressButton((vr.win_width * 0.81, vr.win_height * 0.155), (200, 45), 'Playground', text_size=30, font='robot', transparent=True, framed=True, shiftx=0.1, shifty=0.17, callback=self.play_callback, callback_args=('Playground',))}
+
+        self.levels = self.init_levels_list(worlds)
 
         self.ambient_elts = []
         self.old_ambient_elts = []
@@ -290,6 +306,9 @@ class LevelSelection(App):
 
         u.Text('Levels', (vr.win_width * 0.12, vr.win_height * 0.12), 48, 'white', font_type='robot')
 
+        for world_num in self.levels:
+            u.Text(f'World {world_num}', (vr.win_width * 0.152 + (world_num - 1) * vr.win_width * 0.18, vr.win_height * 0.22), 48, 'white', font_type='robot')
+
     def pre_update(self):
         vr.game_window.blit(self.mask, (0, 0))
         self.update_and_draw_particle()
@@ -300,6 +319,17 @@ class LevelSelection(App):
 
     def post_update(self):
         return
+
+    def init_levels_list(self, worlds):
+        button_width, button_height = vr.win_width * 0.18, vr.win_height * 0.08
+
+        levels = {world_num: [levelpath.split('rsc/maps/')[1].replace('.pkl', '') for levelpath in sorted(glob(u.path(f"rsc/maps/world_{world_num}/*.pkl")))] for world_num in range(worlds[0], worlds[1]+1)}
+
+        for world in levels:
+            for l, level_path in enumerate(levels[world]):
+                self.gui_elements[f"W{world}L{l+1}"] = gui.PressButton((vr.win_width * 0.215 + (world - 1) * button_width, vr.win_height * 0.34 + l * button_height), (200, 45), f'level {l+1}', text_size=30, font='robot',
+                                                                       transparent=True, framed=True, shiftx=0.1, shifty=0.17, callback=self.play_callback, callback_args=(level_path,))
+        return levels
 
     def update_and_draw_particle(self):
         for ambient_elt in self.old_ambient_elts:
@@ -314,7 +344,8 @@ class LevelSelection(App):
             ambient_obj.draw()
             if not ambient_obj.alive: self.old_ambient_elts.append(ambient_obj)
 
-    def play_callback(self, level=''):
-        Transition(Game(), duration=0.5)
-    def back_callback(self):
+    def play_callback(self, *args):
+        level = args[0] if len(args) > 0 else 'default'
+        Transition(Game(level=level), duration=0.5)
+    def back_callback(self, *args):
         Transition(Menu(), duration=0.5)

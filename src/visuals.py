@@ -36,5 +36,7 @@ particles_visuals = {'default': {'frames': load_folder("particles/default"), 'du
              'void': {'frames': load_folder("particles/void"), 'duration': 0.2},
              'star': {'frames': load_folder("particles/star"), 'duration': 1.}}
 creatures_visuals = {'bat': {'frames': load_folder("creatures/bat", resize=t.duo(cf.bat['size'])), 'duration': 0.05}}
+misc_visuals = {'start': {'frames': load_folder("misc/start", resize=t.duo(cf.block_default_size)), 'duration': 0.05},
+                'end': {'frames': load_folder("misc/end", resize=t.duo(cf.block_default_size)), 'duration': 0.05}}
 
-sync_animations_cycles = [('spike', spike_visuals)]
+sync_animations_cycles = [('spike', spike_visuals), ('start/end', misc_visuals['start'])]

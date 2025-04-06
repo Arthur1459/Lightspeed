@@ -33,7 +33,7 @@ class Displayer:
         return
 
 class PressButton:
-    def __init__(self, coord, size, msg, color="white", callback=None, text_size=None, shiftx=0.3, shifty=0.1, framed=False, transparent=False, font='pixel'):
+    def __init__(self, coord, size, msg, color="white", callback=None, callback_args=(), text_size=None, shiftx=0.3, shifty=0.1, framed=False, transparent=False, font='pixel'):
         self.type, self.id = "press button", u.getNewId()
         self.coord = coord
         self.size, self.text_size = size, text_size if text_size is not None else size[0]//5
@@ -44,7 +44,7 @@ class PressButton:
                                            'HOVERED': img("gui/PressButton/hovered.png", resize=self.size)}, "RELEASED"
         self.visual = pg.transform.scale(self.visuals[self.visual_state], self.size)
         self.pressed = False
-        self.callback = callback
+        self.callback, self.callback_args = callback, callback_args
 
         self.transparent, self.font = transparent, font
         self.framed, self.frame = framed, None
@@ -61,7 +61,7 @@ class PressButton:
                 self.pressed = True
                 self.visual = self.visuals[self.visual_state]
                 if self.callback is not None:
-                    self.callback()
+                    self.callback(*self.callback_args)
             elif self.visual_state != "HOVERED":
                 sm.PlayEffect('button_hovered')
                 self.visual_state = "HOVERED"

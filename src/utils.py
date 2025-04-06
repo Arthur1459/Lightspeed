@@ -35,6 +35,7 @@ def getInputs():
     vr.inputs["B"] = True if keys[pg.K_b] else False
     vr.inputs["G"] = True if keys[pg.K_g] else False
     vr.inputs["S"] = True if keys[pg.K_s] else False
+    vr.inputs["D"] = True if keys[pg.K_d] else False
     vr.inputs["F"] = True if keys[pg.K_f] else False
     vr.inputs["R"] = True if keys[pg.K_r] else False
     vr.inputs["E"] = True if keys[pg.K_e] else False
