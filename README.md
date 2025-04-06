@@ -10,8 +10,8 @@ First of all **clone / download this repository**:
 
 Then two possibilities :
 
-- Create the **executable** : (! only tested on Mac M1 !)
-  1. make sure to have `python3` and so `pip3` installed on your computer.
+- Create the **executable** : (! only tested on Mac ARM !)
+  1. make sure to have `python3` and `pip3` installed on your computer.
   2. make sur to have installed `make` 
      - linux `sudo apt-get make`
      - mac `brew install make`
@@ -21,10 +21,12 @@ Then two possibilities :
 
 
 - Launch the **main.py** file (should works for everyone):
-  1. make sure to have `python3` installed on your computer.
-  2. make sur to have installed `make` 
+  1. make sure to have `python3` installed on your computer (and `pip`). 
+  2. make sure to have installed `make`
      - linux `sudo apt-get make`
      - mac `brew install make`
   3. in a terminal go to  `lightspeed/src`
   4. install the required libraries : `make download-requirements`
   5. run `main.py` file with python : `python3 main.py`
+
+In case of any issue : reports it with all the error's details and contact me directly.
