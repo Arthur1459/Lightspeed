@@ -21,4 +21,3 @@ sound_effects_mode = True
 musics = {'ingame': load_soundfolder('musics/ingame'),
           'menu': load_soundfolder('musics/menu')}
 sfx = load_sfx()
-print(sfx)

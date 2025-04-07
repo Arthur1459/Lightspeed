@@ -16,7 +16,8 @@ make-app:
 			  	--add-data "rsc/visuals/player/fall/*.png:rsc/visuals/player/fall/" \
 			  	--add-data "rsc/visuals/player/slide/*.png:rsc/visuals/player/slide/" \
 			  	--add-data "rsc/visuals/player/grapple/*.png:rsc/visuals/player/grapple/" \
-			  	--add-data "rsc/visuals/blocks/metal_blocks/*.png:rsc/visuals/blocks/metal_blocks/" \
+			  	--add-data "rsc/visuals/blocks/blocks/*.png:rsc/visuals/blocks/blocks/" \
+			  	--add-data "rsc/visuals/blocks/blocks_top/*.png:rsc/visuals/blocks/blocks_top/" \
 			  	--add-data "rsc/visuals/blocks/fire_blocks/*.png:rsc/visuals/blocks/fire_blocks/" \
 			  	--add-data "rsc/visuals/blocks/fire_blocks/*.png:rsc/visuals/blocks/fire_blocks/" \
 			  	--add-data "rsc/visuals/particles/default/*.png:rsc/visuals/particles/default/" \
@@ -26,6 +27,7 @@ make-app:
 			  	--add-data "rsc/visuals/creatures/bat/*.png:rsc/visuals/creatures/bat/" \
 			  	--add-data "rsc/visuals/misc/start/*.png:rsc/visuals/misc/start/" \
 			  	--add-data "rsc/visuals/misc/end/*.png:rsc/visuals/misc/end/" \
+			  	--add-data "rsc/visuals/misc/*.png:rsc/visuals/misc/" \
 			  	--add-data "rsc/visuals/gui/*.png:rsc/visuals/gui/" \
 			  	--add-data "rsc/visuals/gui/PressButton/*.png:rsc/visuals/gui/PressButton/" \
 			  	--add-data "rsc/visuals/gui/PressButton/frame/*.png:rsc/visuals/gui/PressButton/frame/" \

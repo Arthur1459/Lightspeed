@@ -34,6 +34,7 @@ def getInputs():
 
     vr.inputs["B"] = True if keys[pg.K_b] else False
     vr.inputs["G"] = True if keys[pg.K_g] else False
+    vr.inputs["H"] = True if keys[pg.K_h] else False
     vr.inputs["S"] = True if keys[pg.K_s] else False
     vr.inputs["D"] = True if keys[pg.K_d] else False
     vr.inputs["F"] = True if keys[pg.K_f] else False
@@ -108,9 +109,9 @@ def distance_to_acc_per_updt(distance):
 
 def blur_background():
     speed_factor = t.norm(vr.player.speed) / 1000
-    color = cf.back_base_color[:]
-    color[0] = min(250, cf.back_base_color[0] * max(0.5, speed_factor))
-    vr.mask_background.fill(color)
+    #color = cf.back_base_color[:]
+    #color[0] = min(250, cf.back_base_color[0] * max(0.5, speed_factor))
+    #vr.mask_background.fill(color)
     vr.mask_background.set_alpha(max(cf.min_blur, min(255, int(255 * (1 - speed_factor)))))
     vr.game_window.blit(vr.mask_background, (0, 0))
 

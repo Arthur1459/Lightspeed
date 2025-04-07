@@ -51,8 +51,8 @@ class Map:
         vr.game_window.blit(misc_visuals['start']['frames'][vr.animation_cycles['start/end']['index']], u.adapt_to_view(self.start_coord))
         vr.game_window.blit(misc_visuals['end']['frames'][vr.animation_cycles['start/end']['index']], u.adapt_to_view(self.end_coord))
 
-    def add_block(self, anchor, size, update=False):
-        geo_type, geo_data = 'block', (anchor, size)
+    def add_block(self, anchor, size, visual_type='default', update=False):
+        geo_type, geo_data = 'block', (anchor, size, visual_type)
         self.content['geobjects'].add((geo_type, geo_data))
         if update: self.reload_obj(geo_type, geo_data)
 
@@ -76,31 +76,51 @@ class Map:
         except Exception as e:
             print(f"ERROR while removing object ( {obj.get_type()}, {obj.get_data()} ) :\n {e}\n")
 
+    def update_obj(self, obj_classification, obj_type, old_data, new_data):
+        self.content[obj_classification + "s"].remove((obj_type, old_data))
+        self.content[obj_classification + "s"].add((obj_type, new_data))
+
     def reload_map(self):
+        # Update Content with last updates
+        self.content = {'geobjects': set(), 'creatures': set()}
+        for geobject in self.geobjects:
+            self.content['geobjects'].add((geobject.get_type(), geobject.get_data()))
+        for creature in self.creatures:
+            self.content['creatures'].add((creature.get_type(), creature.get_data()))
+
         self.geobjects, self.creatures = [], []
         for geo_type, geo_data in self.content['geobjects']:
             self.reload_obj(geo_type, geo_data)
         for creature_type, creature_data in self.content['creatures']:
             self.reload_obj(creature_type, creature_data)
+
+        self.geobjects.reverse()
+
         vr.camera_coord = t.Vadd(t.Vdiff(self.start_coord, vr.middle), vr.player.get_size())
 
     def reload_obj(self, obj_type, obj_data):
         if obj_type == 'block':
-            anchor, size = obj_data
-            self.geobjects.append(geo.Block(anchor, size))
+            anchor, size, visual_type = obj_data[0], obj_data[1], 'default' if len(obj_data) < 3 else obj_data[2]
+            self.geobjects.append(geo.Block(anchor, size, visual_type))
         elif obj_type == 'geobject':
             anchor, points = obj_data
             self.geobjects.append(geo.Geobject(anchor, points))
         elif obj_type == 'spike':
             anchor, size = obj_data
-            self.geobjects.append(geo.Spike(anchor, size))
+            self.geobjects.insert(0, geo.Spike(anchor, size))
         elif obj_type == 'bat':
             anchor = obj_data
             self.creatures.append(crt.Bat(anchor))
 
     def save_map(self, new=False):
+        content = {'geobjects': set(), 'creatures': set()}
+        for geobject in self.geobjects:
+            content['geobjects'].add((geobject.get_type(), geobject.get_data()))
+        for creature in self.creatures:
+            content['creatures'].add((creature.get_type(), creature.get_data()))
+
+        datas = (self.start_coord, content, self.end_coord)
         with open(u.path(f"rsc/maps/{self.name if not new else 'new_save'}.pkl"), 'wb') as file:
-            datas = (self.start_coord, self.content, self.end_coord)
             pickle.dump(datas, file, pickle.HIGHEST_PROTOCOL)
 
     def load_map(self, name='default'):
@@ -113,4 +133,13 @@ class Map:
         except: raise "Content cannot be read !"
         try: self.end_coord = loaded_datas[2]
         except: print("No end coord !")#raise "End coord cannot be read !"
-        self.reload_map()
+
+        self.geobjects, self.creatures = [], []
+        for geo_type, geo_data in self.content['geobjects']:
+            self.reload_obj(geo_type, geo_data)
+        for creature_type, creature_data in self.content['creatures']:
+            self.reload_obj(creature_type, creature_data)
+
+        self.geobjects.reverse()
+
+        vr.camera_coord = t.Vadd(t.Vdiff(self.start_coord, vr.middle), vr.player.get_size())

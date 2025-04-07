@@ -125,8 +125,8 @@ class Game(App):
             if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
                 obj.update()
                 obj.draw()
-            if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_type() in me.types_classification[me.current_targeted_type]:
-                me.editor_selected_obj = obj
+                if t.distance(obj.world_anchor, cursor_world_coord) < obj.radius and obj.intersect(cursor_world_coord) and obj.get_type() in me.types_classification[me.current_targeted_type]:
+                    me.editor_selected_obj = obj
 
         for obj in vr.map.creatures:
             if t.distance(obj.world_anchor, u.get_view_center_coord()) < obj.radius + vr.camera_radius:
@@ -166,8 +166,6 @@ class Game(App):
 
         u.blur_background()
         if me.toggle_editor: u.draw_worldborder()
-        pg.draw.line(vr.game_window, 'black', u.adapt_to_view((0, cf.world_size[1] - cf.worldborder[1])),
-                     u.adapt_to_view((cf.world_size[0], cf.world_size[1] - cf.worldborder[1])), 20)
 
     def post_update(self):
         pg.display.update()

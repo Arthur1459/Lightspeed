@@ -29,7 +29,8 @@ player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/sta
                   'dead': {'duration': 0, 'frames': [img('empty.png')]},
                   'grapple': {'duration': 0, 'frames':  [img('player/grapple/grapple_0.png', resize=cf.player_grapple_size)]}}
 
-blocks_visuals = {'metal': load_folder("blocks/metal_blocks")}
+blocks_visuals = {'blocks': {'frames': load_folder("blocks/blocks", resize=t.duo(cf.block_default_size)), 'duration': 0.},
+                  'blocks_top': {'frames': load_folder("blocks/blocks_top", resize=t.duo(cf.block_default_size)), 'duration': 0.}}
 spike_visuals = {'frames': load_folder("blocks/fire_blocks"), 'duration': 0.15}
 particles_visuals = {'default': {'frames': load_folder("particles/default"), 'duration': 0.2},
              'fire': {'frames': load_folder("particles/fire"), 'duration': 0.1},
@@ -37,6 +38,7 @@ particles_visuals = {'default': {'frames': load_folder("particles/default"), 'du
              'star': {'frames': load_folder("particles/star"), 'duration': 1.}}
 creatures_visuals = {'bat': {'frames': load_folder("creatures/bat", resize=t.duo(cf.bat['size'])), 'duration': 0.05}}
 misc_visuals = {'start': {'frames': load_folder("misc/start", resize=t.duo(cf.block_default_size)), 'duration': 0.05},
-                'end': {'frames': load_folder("misc/end", resize=t.duo(cf.block_default_size)), 'duration': 0.05}}
+                'end': {'frames': load_folder("misc/end", resize=t.duo(cf.block_default_size)), 'duration': 0.05},
+                'background': img("misc/background.png", resize=cf.view_size)}
 
 sync_animations_cycles = [('spike', spike_visuals), ('start/end', misc_visuals['start'])]

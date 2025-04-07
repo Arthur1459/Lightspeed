@@ -1,7 +1,7 @@
 from game_manager import *
 from visuals import img
 from utils import path
-from visuals import sync_animations_cycles
+from visuals import sync_animations_cycles, misc_visuals
 
 def init():
 
@@ -21,8 +21,9 @@ def init():
 
     vr.clock = pg.time.Clock()
 
-    vr.mask_background = pg.surface.Surface(vr.window_size)
-    vr.mask_background.fill(cf.back_base_color)
+    vr.mask_background = pg.surface.Surface(cf.view_size)
+    #vr.mask_background.fill(cf.back_base_color)
+    vr.mask_background.blit(misc_visuals['background'], (0, 0))
     vr.mask_background.convert_alpha()
 
     for name, animation in sync_animations_cycles:

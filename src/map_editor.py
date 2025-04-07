@@ -45,6 +45,8 @@ def editor_update():
         current_block_type_to_place = blocks[blocks_index]
         blocks_index = (blocks_index + 1) % len(blocks)
 
+    size_selected = types_sizes[current_targeted_type]
+
     if current_block_type_to_place not in other_block_type:
         if toggle_grid_magnet:
                 if current_block_type_to_place in medium_block_types:
@@ -55,15 +57,14 @@ def editor_update():
                     current_targeted_type = 'large'
 
                 x, y = t.Vadd(vr.camera_coord, vr.cursor)
-                size_selected = types_sizes[current_targeted_type]
                 target_anchor = (x // size_selected) * size_selected, (y // size_selected) * size_selected
 
         vr.info_txt = current_block_type_to_place
+        anchor = target_anchor if toggle_grid_magnet else t.Vadd(vr.camera_coord, t.Vcl(1, vr.cursor, -0.5, t.duo(size_selected)))
         if vr.inputs['CLICK'] and wait_for_key():
             if editor_selected_obj is not None:
                 vr.map.remove(editor_selected_obj, obj_classification=map_classification[editor_selected_obj.get_type()])
             else:
-                anchor = target_anchor if toggle_grid_magnet else t.Vadd(vr.camera_coord, t.Vcl(1, vr.cursor, -0.5, (size_selected, size_selected)))
                 if current_block_type_to_place == 'block':
                     vr.map.add_block(anchor, (size_selected, size_selected), update=True)
                 elif current_block_type_to_place == 'spike':
@@ -74,6 +75,12 @@ def editor_update():
                     pass
                 else:
                     print("# Error : unknown type block -> ", current_block_type_to_place)
+        elif vr.inputs['H'] and wait_for_key():
+            if editor_selected_obj is not None and editor_selected_obj.get_type() == 'block':
+                visual_types, old_visual, old_data = list(editor_selected_obj.visuals.keys()), editor_selected_obj.visual_type, editor_selected_obj.get_data()
+                editor_selected_obj.visual_type = visual_types[(visual_types.index(old_visual) + 1) % len(visual_types)]
+                editor_selected_obj.update_visual()
+                vr.map.update_obj(map_classification['block'], 'block', old_data, editor_selected_obj.get_data())
     else:
         target_anchor = t.Vadd(vr.camera_coord, vr.cursor)
         if vr.inputs['CLICK'] and wait_for_key():

@@ -2,7 +2,7 @@ import vars as vr
 import config as cf
 import tools as t
 import utils as u
-from visuals import blocks_visuals, spike_visuals
+from visuals import blocks_visuals, spike_visuals, sync_animations_cycles
 from ambient import Particle
 
 import pygame as pg
@@ -26,7 +26,8 @@ class Geobject:
         return (self.world_anchor, self.points_relative)
     def get_size(self):
         return 2 * self.radius, 2 * self.radius
-
+    def __getitem__(self, item):
+        return self.get_type()
     def update(self):
         for i, point in enumerate(self.points_relative):
             self.points_absolute[i] = t.Vadd(self.world_anchor, point)
@@ -48,27 +49,26 @@ class Geobject:
             return False
 
 class Block(Geobject):
-    def __init__(self, anchori=(1200, 1000), size=(100, 100)):
+    def __init__(self, anchori=(1200, 1000), size=(100, 100), visual_type='default'):
         self.size = size
         self.radius = t.norm(self.size)
         super().__init__(anchori, ((0, 0), (self.sizex(), 0), (self.sizex(), self.sizey()), (0, self.sizey())))
 
         self.tags.add('solid')
 
-        self.visuals = [pg.transform.scale(skin, self.size) for skin in blocks_visuals['metal']]
-        self.visual = self.visuals[0]
+        self.visual_type = visual_type
+        self.visuals = {'default': blocks_visuals['blocks']['frames'], 'top': blocks_visuals['blocks_top']['frames']}
+        self.visual = self.visuals[self.visual_type][t.rndInt(0, len(self.visuals[self.visual_type]))]
 
     def update(self):
         super().update()
-        if t.distance(t.Vadd(vr.player.coord, vr.camera_coord), t.Vcl(1, self.world_anchor, 0.5, self.size)) < self.radius:
-            self.player_skin()
-        else:
-            self.base_skin()
+    def update_visual(self):
+        self.visual = self.visuals[self.visual_type][t.rndInt(0, len(self.visuals[self.visual_type]))]
 
     def get_type(self):
         return 'block'
     def get_data(self):
-        return (self.world_anchor, self.size)
+        return (self.world_anchor, self.size, self.visual_type)
     def player_skin(self):
         self.visual = self.visuals[1]
     def base_skin(self):
@@ -96,6 +96,9 @@ class Spike(Block):
 
     def get_type(self):
         return 'spike'
+    def get_data(self):
+        return (self.world_anchor, self.size)
+
     def draw(self):
         self.visual = self.visuals[vr.animation_cycles['spike']['index']]
         vr.game_window.blit(self.visual, u.adapt_to_view(self.world_anchor))
