@@ -16,6 +16,9 @@ def Vmul(v, f):
 def VxV(v1, v2):
     return [v1[i] * v2[i] for i in range(min(len(v1), len(v2)))]
 
+def dot(v1, v2):
+    return sum(VxV(v1, v2))
+
 def normalise(v):
     return Vmul(v, inv(norm(v)))
 

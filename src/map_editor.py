@@ -10,11 +10,12 @@ click_minimal_duration = 0.1
 wait_key = vr.t
 
 toggle_editor = False
-blocks, blocks_index = ['block', 'spike', 'bat', 'start_coord', 'end_coord'], 0
-map_classification = {'geobject': 'geobject', 'block': 'geobject', 'spike': 'geobject', 'creature': 'creature', 'bat': 'creature'}
+blocks, blocks_index = ['block', 'slope', 'spike', 'bat', 'start_coord', 'end_coord'], 0
+map_classification = {'geobject': 'geobject', 'block': 'geobject', 'slope': 'geobject', 'spike': 'geobject',
+                      'creature': 'creature', 'bat': 'creature'}
 current_block_type_to_place = 'block'
 
-medium_block_types = {'default', 'block'}
+medium_block_types = {'default', 'block', 'slope'}
 small_block_types = {'spike', 'bat'}
 large_block_types = set()
 other_block_type = {'end_coord', 'start_coord'}
@@ -67,6 +68,8 @@ def editor_update():
             else:
                 if current_block_type_to_place == 'block':
                     vr.map.add_block(anchor, (size_selected, size_selected), update=True)
+                if current_block_type_to_place == 'slope':
+                    vr.map.add_geobject('slope', (anchor, (size_selected, size_selected), 'topright', 'blocks'), update=True)
                 elif current_block_type_to_place == 'spike':
                     vr.map.add_geobject('spike', (anchor, (size_selected, size_selected)), update=True)
                 elif current_block_type_to_place == 'bat':

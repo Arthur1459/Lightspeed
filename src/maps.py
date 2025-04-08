@@ -100,17 +100,20 @@ class Map:
 
     def reload_obj(self, obj_type, obj_data):
         if obj_type == 'block':
-            anchor, size, visual_type = obj_data[0], obj_data[1], 'default' if len(obj_data) < 3 else obj_data[2]
+            anchor, size, visual_type = obj_data
             self.geobjects.append(geo.Block(anchor, size, visual_type))
-        elif obj_type == 'geobject':
-            anchor, points = obj_data
-            self.geobjects.append(geo.Geobject(anchor, points))
+        if obj_type == 'slope':
+            anchor, size, direction, visual_type = obj_data
+            self.geobjects.append(geo.Slope(anchor, size, visual_type, direction))
         elif obj_type == 'spike':
             anchor, size = obj_data
             self.geobjects.insert(0, geo.Spike(anchor, size))
         elif obj_type == 'bat':
             anchor = obj_data
             self.creatures.append(crt.Bat(anchor))
+        elif obj_type == 'geobject':
+            anchor, points = obj_data
+            self.geobjects.append(geo.Geobject(anchor, points))
 
     def save_map(self, new=False):
         content = {'geobjects': set(), 'creatures': set()}

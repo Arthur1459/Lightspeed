@@ -29,8 +29,11 @@ player_visuals = {'stand': {'duration': 0.125, 'frames': load_folder("player/sta
                   'dead': {'duration': 0, 'frames': [img('empty.png')]},
                   'grapple': {'duration': 0, 'frames':  [img('player/grapple/grapple_0.png', resize=cf.player_grapple_size)]}}
 
-blocks_visuals = {'blocks': {'frames': load_folder("blocks/blocks", resize=t.duo(cf.block_default_size)), 'duration': 0.},
-                  'blocks_top': {'frames': load_folder("blocks/blocks_top", resize=t.duo(cf.block_default_size)), 'duration': 0.}}
+blocks_visuals = {'default': {'frames': load_folder("blocks/blocks", resize=t.duo(cf.block_default_size)), 'duration': 0.},
+                  'blocks': {'frames': load_folder("blocks/blocks", resize=t.duo(cf.block_default_size)), 'duration': 0.},
+                  'blocks_top': {'frames': load_folder("blocks/blocks_top", resize=t.duo(cf.block_default_size)), 'duration': 0.},
+                  'blocks_mossy_rock': {'frames': load_folder("blocks/blocks_mossy_rock", resize=t.duo(cf.block_default_size)), 'duration': 0.},
+                  'blocks_rock': {'frames': load_folder("blocks/blocks_rock", resize=t.duo(cf.block_default_size)), 'duration': 0.}}
 spike_visuals = {'frames': load_folder("blocks/fire_blocks"), 'duration': 0.15}
 particles_visuals = {'default': {'frames': load_folder("particles/default"), 'duration': 0.2},
              'fire': {'frames': load_folder("particles/fire"), 'duration': 0.1},

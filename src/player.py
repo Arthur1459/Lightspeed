@@ -40,8 +40,8 @@ class Player:
                           'head': Detector(self.get_center(), (0, -0.6 * self.sizey)),
                           'walk_right': Detector(self.get_center(), (0.4 * self.sizex, 0.3 * self.sizey)),
                           'walk_left': Detector(self.get_center(), (-0.4 * self.sizex, 0.3 * self.sizey)),
-                          'knees': Detector(self.get_center(), (0, 0.5 * self.sizey)),
-                          'foot': Detector(self.get_center(), (0, 0.55 * self.sizey))}
+                          'knees': Detector(self.get_center(), (0, 0.45 * self.sizey)),
+                          'foot': Detector(self.get_center(), (0, 0.5 * self.sizey))}
         self.all_detection = self.get_all_detection()
 
     def update(self):
