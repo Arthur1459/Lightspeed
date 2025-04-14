@@ -16,7 +16,7 @@ music_volume = 50
 sound_musics_mode = False
 
 sfx_volume = 40
-sound_effects_mode = True
+sound_effects_mode = False
 
 musics = {'ingame': load_soundfolder('musics/ingame'),
           'menu': load_soundfolder('musics/menu')}

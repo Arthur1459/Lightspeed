@@ -83,6 +83,7 @@ class Bat(Creature):
             vr.map.ambient_elts.append(Particle('fire', t.Vcl(1, self.world_anchor, 0.5, self.get_size()), persistence=0.5, alpha=250, size=2, gravity=True, speed=u.rnd_speed(4)))
     def update(self):
         super().update()
+        old_data = self.get_data()
 
         if t.distance(self.world_anchor, vr.player.get_world_anchor_centered()) < cf.bat['action_radius']:
             self.state = 'attack'
@@ -97,3 +98,5 @@ class Bat(Creature):
             self.speed = t.Vmul(t.Vdir(self.get_center(), vr.player.get_world_anchor_centered()), u.distance_to_speed_per_updt(cf.bat['speed_attack']))
 
         self.world_anchor = t.Vcl(1, self.world_anchor, vr.dt_update, self.speed)
+
+        vr.map.update_obj('creature', 'bat', old_data, self.get_data())

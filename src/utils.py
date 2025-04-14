@@ -32,14 +32,17 @@ def getInputs():
     vr.inputs["RIGHT"] = True if keys[pg.K_RIGHT] else False
     vr.inputs["LEFT"] = True if keys[pg.K_LEFT] else False
 
-    vr.inputs["B"] = True if keys[pg.K_b] else False
-    vr.inputs["G"] = True if keys[pg.K_g] else False
-    vr.inputs["H"] = True if keys[pg.K_h] else False
-    vr.inputs["S"] = True if keys[pg.K_s] else False
-    vr.inputs["D"] = True if keys[pg.K_d] else False
-    vr.inputs["F"] = True if keys[pg.K_f] else False
-    vr.inputs["R"] = True if keys[pg.K_r] else False
-    vr.inputs["E"] = True if keys[pg.K_e] else False
+    # Map Editor
+    vr.inputs["E"] = True if keys[pg.K_e] else False # toggle
+    vr.inputs["R"] = True if keys[pg.K_r] else False # reload
+    vr.inputs["G"] = True if keys[pg.K_g] else False # block selection
+    vr.inputs["H"] = True if keys[pg.K_h] else False # Block texture
+    vr.inputs["N"] = True if keys[pg.K_n] else False # Block direction
+    vr.inputs["S"] = True if keys[pg.K_s] else False # Save Current Map
+    vr.inputs["D"] = True if keys[pg.K_d] else False # Save as new map in /maps
+    vr.inputs["F"] = True if keys[pg.K_f] else False # Fly mode
+
+    # Config
     vr.inputs["C"] = True if keys[pg.K_c] else False
 
     if vr.controller is not None:

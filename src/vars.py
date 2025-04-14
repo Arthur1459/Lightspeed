@@ -31,6 +31,7 @@ in_transition = False
 
 # Game
 fly_mode = cf.fly_mode
+draw_player_detectors = cf.draw_player_detectors
 gravity = cf.gravity
 
 camera_coord = cf.start_camera_coord

@@ -76,7 +76,7 @@ class Block(Geobject):
         vr.game_window.blit(self.visual, u.adapt_to_view(self.world_anchor))
 
 class Slope(Geobject):
-    def __init__(self, anchori=(1200, 1000), size=(100, 100), direction='topright', visual_type='blocks'):
+    def __init__(self, anchori=(1200, 1000), size=(100, 100), visual_type='blocks', direction='topright'):
         self.size = size
         self.radius = t.norm(self.size)
         super().__init__(anchori, ((0, 0), (self.sizex(), 0), (self.sizex(), self.sizey()), (0, self.sizey())))
@@ -85,16 +85,19 @@ class Slope(Geobject):
 
         self.direction = direction
         self.triangle_relative_coord = ((0, self.sizey()), (self.sizex(), 0), self.get_size())
+        if direction == 'topright': self.triangle_relative_coord = ((0, self.sizey()), (self.sizex(), 0), self.get_size())
+        if direction == 'topleft': self.triangle_relative_coord = ((self.sizex(), self.sizey()), (0, 0), (0, self.sizey()))
+        if direction == 'botright': self.triangle_relative_coord = ((0, 0), (self.sizex(), self.sizey()), (self.sizex(), 0))
+        if direction == 'botleft': self.triangle_relative_coord = ((self.sizex(), 0), (0, self.sizey()), (0, 0))
 
         self.visual_type = visual_type
-        self.visuals = {visual: [self.convert_triangle(frame) for frame in blocks_visuals[visual]['frames']] for visual in blocks_visuals}
-        self.visual = pg.transform.flip(self.visuals[self.visual_type][t.rndInt(0, len(self.visuals[self.visual_type]))], flip_x=(self.direction in ('topleft', 'botleft')) , flip_y=(self.direction in ('botright', 'botleft')))
+        self.visuals = {visual: [frame for frame in blocks_visuals[visual]['frames']] for visual in blocks_visuals}
+        self.visual = self.convert_triangle(self.visuals[self.visual_type][t.rndInt(0, len(self.visuals[self.visual_type]))])
 
     def convert_triangle(self, texture):
         visual = pg.transform.scale(texture.convert_alpha(), self.size)
         triangle_surface = pg.Surface(self.size, pg.SRCALPHA)
-        triangle_points = [(0, self.size[1]), (self.size[0], 0), self.size]  # Triangle shape
-        pg.draw.polygon(triangle_surface, (255, 255, 255, 255), triangle_points)
+        pg.draw.polygon(triangle_surface, (255, 255, 255, 255), self.triangle_relative_coord)
 
         masked_texture = visual.copy()
         masked_texture.blit(triangle_surface, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
@@ -132,7 +135,7 @@ class Slope(Geobject):
     def update(self):
         super().update()
     def update_visual(self):
-        self.visual = pg.transform.flip(self.visuals[self.visual_type][t.rndInt(0, len(self.visuals[self.visual_type]))], flip_x=(self.direction in ('topleft', 'botleft')) , flip_y=(self.direction in ('botright', 'botleft')))
+        self.visual = self.convert_triangle(self.visuals[self.visual_type][t.rndInt(0, len(self.visuals[self.visual_type]))])
 
     def get_type(self):
         return 'slope'

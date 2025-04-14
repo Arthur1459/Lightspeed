@@ -18,6 +18,8 @@ make-app:
 			  	--add-data "rsc/visuals/player/grapple/*.png:rsc/visuals/player/grapple/" \
 			  	--add-data "rsc/visuals/blocks/blocks/*.png:rsc/visuals/blocks/blocks/" \
 			  	--add-data "rsc/visuals/blocks/blocks_top/*.png:rsc/visuals/blocks/blocks_top/" \
+			  	--add-data "rsc/visuals/blocks/blocks_top/*.png:rsc/visuals/blocks/blocks_mossy_rock/" \
+			  	--add-data "rsc/visuals/blocks/blocks_top/*.png:rsc/visuals/blocks/blocks_rock/" \
 			  	--add-data "rsc/visuals/blocks/fire_blocks/*.png:rsc/visuals/blocks/fire_blocks/" \
 			  	--add-data "rsc/visuals/blocks/fire_blocks/*.png:rsc/visuals/blocks/fire_blocks/" \
 			  	--add-data "rsc/visuals/particles/default/*.png:rsc/visuals/particles/default/" \

@@ -18,12 +18,13 @@ current_block_type_to_place = 'block'
 medium_block_types = {'default', 'block', 'slope'}
 small_block_types = {'spike', 'bat'}
 large_block_types = set()
-other_block_type = {'end_coord', 'start_coord'}
+block_with_floating_coord_type = {'end_coord', 'start_coord'}
 
 types_classification = {'large': large_block_types, 'medium': medium_block_types, 'small': small_block_types}
 types_sizes = {'large': cf.block_default_size * 2,
                'medium': cf.block_default_size * 1,
                'small': cf.block_default_size * 0.5}
+slope_directions, slope_direction_selected = ['topright', 'topleft', 'botright', 'botleft'], 0
 
 current_targeted_type = 'medium'
 
@@ -34,9 +35,10 @@ editor_selected_obj = None
 
 def editor_update():
     global toggle_editor, toggle_grid_magnet
-    global current_block_type_to_place, medium_block_types, small_block_types, large_block_types, other_block_type, map_classification
+    global current_block_type_to_place, medium_block_types, small_block_types, large_block_types, block_with_floating_coord_type, map_classification
     global target_anchor, editor_selected_obj, current_targeted_type
     global blocks, blocks_index
+    global slope_direction_selected, slope_directions
 
     if vr.inputs['E'] and wait_for_key():
         toggle_editor = False if toggle_editor else True
@@ -48,7 +50,7 @@ def editor_update():
 
     size_selected = types_sizes[current_targeted_type]
 
-    if current_block_type_to_place not in other_block_type:
+    if current_block_type_to_place not in block_with_floating_coord_type:
         if toggle_grid_magnet:
                 if current_block_type_to_place in medium_block_types:
                     current_targeted_type = 'medium'
@@ -60,30 +62,32 @@ def editor_update():
                 x, y = t.Vadd(vr.camera_coord, vr.cursor)
                 target_anchor = (x // size_selected) * size_selected, (y // size_selected) * size_selected
 
-        vr.info_txt = current_block_type_to_place
         anchor = target_anchor if toggle_grid_magnet else t.Vadd(vr.camera_coord, t.Vcl(1, vr.cursor, -0.5, t.duo(size_selected)))
         if vr.inputs['CLICK'] and wait_for_key():
             if editor_selected_obj is not None:
                 vr.map.remove(editor_selected_obj, obj_classification=map_classification[editor_selected_obj.get_type()])
-            else:
+            elif map_classification[current_block_type_to_place] == 'geobject' and target_anchor not in vr.map.geobjects_anchors:
                 if current_block_type_to_place == 'block':
                     vr.map.add_block(anchor, (size_selected, size_selected), update=True)
-                if current_block_type_to_place == 'slope':
-                    vr.map.add_geobject('slope', (anchor, (size_selected, size_selected), 'topright', 'blocks'), update=True)
+                elif current_block_type_to_place == 'slope':
+                    vr.map.add_geobject('slope', (anchor, (size_selected, size_selected), 'blocks', slope_directions[slope_direction_selected]), update=True)
                 elif current_block_type_to_place == 'spike':
                     vr.map.add_geobject('spike', (anchor, (size_selected, size_selected)), update=True)
-                elif current_block_type_to_place == 'bat':
+                else: pass
+            elif map_classification[current_block_type_to_place] == 'creature':
+                if current_block_type_to_place == 'bat':
                     vr.map.add_creature('bat', anchor, update=True)
-                elif current_block_type_to_place == 'default':
-                    pass
-                else:
-                    print("# Error : unknown type block -> ", current_block_type_to_place)
+                else: pass
+            else:
+                print("# Error : unknown type block -> ", current_block_type_to_place)
         elif vr.inputs['H'] and wait_for_key():
             if editor_selected_obj is not None and editor_selected_obj.get_type() == 'block':
                 visual_types, old_visual, old_data = list(editor_selected_obj.visuals.keys()), editor_selected_obj.visual_type, editor_selected_obj.get_data()
                 editor_selected_obj.visual_type = visual_types[(visual_types.index(old_visual) + 1) % len(visual_types)]
                 editor_selected_obj.update_visual()
                 vr.map.update_obj(map_classification['block'], 'block', old_data, editor_selected_obj.get_data())
+        elif vr.inputs['N'] and wait_for_key():
+            slope_direction_selected = (slope_direction_selected + 1) % len(slope_directions)
     else:
         target_anchor = t.Vadd(vr.camera_coord, vr.cursor)
         if vr.inputs['CLICK'] and wait_for_key():
@@ -117,7 +121,8 @@ def editor_draw():
         topleft = u.adapt_to_view(target_anchor) if toggle_grid_magnet else t.Vcl(1, vr.cursor, -0.5, (types_sizes[current_targeted_type], types_sizes[current_targeted_type]))
         pg.draw.rect(vr.game_window, 'red', (topleft[0], topleft[1], types_sizes[current_targeted_type], types_sizes[current_targeted_type]), 2)
 
-        u.Text(f"[editor] place/remove selection : {current_block_type_to_place}", (10, vr.win_height - 48), 14, 'orange')
+        msg = str(current_block_type_to_place) + " " + (str(slope_direction_selected) if current_block_type_to_place == "slope" else "")
+        u.Text(f"[editor] place/remove selection : {msg}", (10, vr.win_height - 48), 14, 'orange')
 
     return
 

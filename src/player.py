@@ -15,7 +15,7 @@ class Player:
         self.sizex, self.sizey = cf.player_size
 
         self.decentralise = [0, 0]
-        self.coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
+        self.win_coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
 
         self.speed = [0, 0]
         self.acc = [0, 0]
@@ -33,14 +33,14 @@ class Player:
         self.player_power_acc = 0
 
         self.detectors = {'body': Detector(self.get_center(), (0, 0)),
-                          'body_right': Detector(self.get_center(), (0.3 * self.sizex, 0)),
-                          'body_left': Detector(self.get_center(), (-0.3 * self.sizex, 0)),
-                          'right': Detector(self.get_center(), (0.6 * self.sizex, 0)),
-                          'left': Detector(self.get_center(), (-0.6 * self.sizex, 0)),
-                          'head': Detector(self.get_center(), (0, -0.6 * self.sizey)),
-                          'walk_right': Detector(self.get_center(), (0.4 * self.sizex, 0.3 * self.sizey)),
-                          'walk_left': Detector(self.get_center(), (-0.4 * self.sizex, 0.3 * self.sizey)),
-                          'knees': Detector(self.get_center(), (0, 0.45 * self.sizey)),
+                          'body_right': Detector(self.get_center(), (0.25 * self.sizex, 0)),
+                          'body_left': Detector(self.get_center(), (-0.25 * self.sizex, 0)),
+                          'right': Detector(self.get_center(), (0.4 * self.sizex, 0)),
+                          'left': Detector(self.get_center(), (-0.4 * self.sizex, 0)),
+                          'head': Detector(self.get_center(), (0, -0.5 * self.sizey)),
+                          'walk_right': Detector(self.get_center(), (0.3 * self.sizex, 0.3 * self.sizey)),
+                          'walk_left': Detector(self.get_center(), (-0.3 * self.sizex, 0.3 * self.sizey)),
+                          'knees': Detector(self.get_center(), (0, 0.42 * self.sizey)),
                           'foot': Detector(self.get_center(), (0, 0.5 * self.sizey))}
         self.all_detection = self.get_all_detection()
 
@@ -50,8 +50,8 @@ class Player:
         self.all_detection = self.get_all_detection()
 
         # Action reload
-        if vr.t - self.actions_timers['jump'] > cf.player_jump_reload and 'jump_ready' not in self.tags:
-            self.tags.add('jump_ready')
+        if vr.t - self.actions_timers['jump'] > cf.player_jump_reload and 'jumping' not in self.tags:
+            self.tags.add('jump_reloaded')
 
         # User inputs
         self.control_player()
@@ -62,12 +62,30 @@ class Player:
 
         # Special Detector detection
         if 'dead' not in self.tags and self.is_killed():
-            self.tags.add('dead')
-            self.actions_timers['respawn'] = vr.t
-            self.damage_taken_effect()
+            self.kill()
 
         if 'dead' not in self.tags:
             # Control collide
+            if 'solid' in self.detectors['foot'].detection:
+                self.tags.add('on_ground')
+                if self.speed[1] > 0: self.speed[1] = 0
+                if 'jumping' not in self.tags:
+                    if 'solid' in self.detectors['walk_right'].detection and not ('solid' in self.detectors['walk_left'].detection):
+                        slope_direction = t.normalise((1, -2 if 'solid' in self.detectors['knees'].detection else -1))
+                        self.speed = t.Vmul(slope_direction, t.s(t.dot(slope_direction, self.speed)) * t.norm(self.speed))
+                    elif 'solid' in self.detectors['walk_left'].detection and not ('solid' in self.detectors['walk_right'].detection):
+                        slope_direction = t.normalise((-1, -2 if 'solid' in self.detectors['knees'].detection else -1))
+                        self.speed = t.Vmul(slope_direction, t.s(t.dot(slope_direction, self.speed)) * t.norm(self.speed))
+            else:
+                self.remove_tag('on_ground')
+
+            if 'solid' in self.detectors['head'].detection:
+                if self.speed[1] < 0:
+                    self.speed[1] = 0.1 * abs(self.speed[1])
+                    self.remove_tag('jumping')
+                else:
+                    self.speed[1] = max(self.speed[1], u.distance_to_speed_per_updt(cf.anti_glitch_power))
+
             if 'solid' in self.detectors['right'].detection:
                 if self.speed[0] > 0:
                     self.speed[0] = 0
@@ -75,42 +93,37 @@ class Player:
                 if self.speed[0] < 0:
                     self.speed[0] = 0
 
-            if 'solid' in self.detectors['foot'].detection:
-                self.tags.add('on_ground')
-                if self.speed[1] > 0:
-                    self.speed[1] = 0
-            else:
-                if 'on_ground' in self.tags: self.tags.remove('on_ground')
-            if 'solid' in self.detectors['head'].detection:
-                if self.speed[1] < 0:
-                    self.speed[1] = 0.1 * abs(self.speed[1])
-                    if 'jumping' in self.tags: self.tags.remove('jumping')
-
             if 'solid' in self.detectors['body_right'].detection:
-                self.speed[0] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-            if 'solid' in self.detectors['body_left'].detection:
-                self.speed[0] += 1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-            if 'solid' in self.detectors['walk_right'].detection and 'solid' not in self.detectors['right'].detection:
-                self.speed[0] += 0.2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-                self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-            if 'solid' in self.detectors['walk_left'].detection and 'solid' not in self.detectors['left'].detection:
-                self.speed[0] += -0.2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-                self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                self.speed[0] = -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+            elif 'solid' in self.detectors['body_left'].detection:
+                self.speed[0] = 1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+
             if 'solid' in self.detectors['knees'].detection:
-                self.speed[1] += -1 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
-            if 'solid' in self.detectors['body'].detection:
-                self.speed[1] += -2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                if self.speed[1] > 0: self.speed[1] = 0 # Stop fall
+                else: self.speed[1] = -1 * max(abs(self.speed[1]), u.distance_to_speed_per_updt(cf.anti_glitch_power))
+
+            if 'solid' in self.detectors['body'].detection: # If center in wall -> try to get out else die
+                if 'solid' not in self.detectors['head'].detection:
+                    self.speed[1] = -2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                elif 'solid' not in self.detectors['foot'].detection:
+                    self.speed[1] = 2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                elif 'solid' not in self.detectors['right'].detection:
+                    self.speed[0] = 2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                elif 'solid' not in self.detectors['left'].detection:
+                    self.speed[0] = -2 * u.distance_to_speed_per_updt(cf.anti_glitch_power)
+                else:
+                    self.kill()
 
             # Speed Zero if small
-            if abs(self.speed[0]) < u.distance_to_speed_per_updt(0.2): self.speed[0] = 0
-            if abs(self.speed[1]) < u.distance_to_speed_per_updt(0.2): self.speed[1] = 0
+            if 'on_ground' in self.tags:
+                if abs(self.speed[0]) < u.distance_to_speed_per_updt(0.5): self.speed[0] = 0
+                if abs(self.speed[1]) < u.distance_to_speed_per_updt(0.5): self.speed[1] = 0
 
             # Coord decentralised in window
-            self.coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
+            self.win_coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
 
             #--- Camera update
             camera_speed = [0, 0]
-            border_distances = (-self.decentralise[0] + self.sizex/2, 2 * cf.worldborder[0] + 2 * self.decentralise[0], -self.decentralise[1] + self.sizey/2, 2 * cf.worldborder[1] + 2 * self.decentralise[1])
 
             future_decentralise = t.Vcl(1, self.decentralise, vr.dt_update, self.speed)
             self.decentralise = t.VmaxControl(future_decentralise, self.sizex)
@@ -142,27 +155,29 @@ class Player:
 
         if 'dead' in self.tags:
             new_states = 'dead'
-        elif self.speed[1] < 0:
+        elif 'on_ground' in self.tags:
+            if self.speed[0] == 0:
+                new_states = 'stand'
+            elif t.s(self.speed[0]) == t.s(self.acc[0]):
+                new_states = 'run_right' if self.speed[0] > 0 else 'run_left'
+            elif abs(self.speed[0]) > u.distance_to_speed_per_updt(cf.player_speed_start_ground):
+                new_states = 'slide_right' if self.speed[0] > 0 else 'slide_left'
+            else:
+                new_states = 'stand'
+        elif 'jumping' in self.tags or self.speed[1] < 0:
             if self.speed[0] >= 0:
                 new_states = 'jump_right'
             else:
                 new_states = 'jump_left'
-        elif 'on_ground' in self.tags and self.speed[0] != 0.:
-            if t.s(self.speed[0]) == t.s(self.acc[0]):
-                new_states = 'run_right' if self.speed[0] > 0 else 'run_left'
-            elif abs(self.speed[0]) > u.distance_to_speed_per_updt(cf.player_speed_start):
-                new_states = 'slide_right' if self.speed[0] > 0 else 'slide_left'
-            else:
-                new_states = 'stand'
         elif self.speed[1] > 0:
             new_states = 'fall'
         else:
             new_states = 'stand'
 
-        speed_factor = max(0.3, 8 * t.norm(self.speed) / u.distance_to_speed_per_updt(self.sizex))
+        speed_factor = max(0.5, 8 * t.norm(self.speed) / u.distance_to_speed_per_updt(self.sizex))
 
         if u.proba((speed_factor**2) * 10) and 'dead' not in self.tags:
-            anchor = t.Vadd(t.Vadd(vr.camera_coord, self.coord), (self.sizex/2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex), self.sizey/2 + t.rndInt(- 0.4 * self.sizey, 0.4 * self.sizey)))
+            anchor = t.Vadd(t.Vadd(vr.camera_coord, self.win_coord), (self.sizex / 2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex), self.sizey / 2 + t.rndInt(- 0.4 * self.sizey, 0.4 * self.sizey)))
             vr.map.ambient_elts.append(Particle('default', anchor, size=self.sizex, speed=self.speed, gravity=True))
 
         if new_states != self.states:
@@ -176,103 +191,128 @@ class Player:
     def control_player(self):
 
         if vr.fly_mode:
-            if vr.inputs['RIGHT']: self.speed[0] = 1 * u.distance_to_speed_per_updt(10)
-            elif vr.inputs['LEFT']: self.speed[0] = -1 * u.distance_to_speed_per_updt(10)
-            if vr.inputs['DOWN']: self.speed[1] = 1 * u.distance_to_speed_per_updt(10)
-            elif vr.inputs['UP']: self.speed[1] = -1 * u.distance_to_speed_per_updt(10)
+            if vr.inputs['RIGHT']: self.speed[0] = 1 * u.distance_to_speed_per_updt(15)
+            elif vr.inputs['LEFT']: self.speed[0] = -1 * u.distance_to_speed_per_updt(15)
+            if vr.inputs['DOWN']: self.speed[1] = 1 * u.distance_to_speed_per_updt(15)
+            elif vr.inputs['UP']: self.speed[1] = -1 * u.distance_to_speed_per_updt(15)
             return
-
-        if vr.inputs['SPACE']:
-            self.launch_grapple()
-        else:
-            self.retract_grapple()
-        self.grapple.update(self.get_center())
-        if self.grapple.state == 'caught':
-            self.acc = t.Vadd(self.acc, t.Vmul(t.Vdir(self.get_center(), self.grapple.target_anchor), u.distance_to_acc_per_updt(cf.player_grapple_force)))
-            self.tags.add('can_double_jump')
-            return
-
-        in_the_air = 'on_ground' not in self.tags
-        max_acc = u.distance_to_acc_per_updt(cf.player_max_acc)
-        if vr.inputs['RIGHT'] and 'solid' not in self.detectors['right'].detection:
-            if self.speed[0] < 0:
-                self.player_power_acc = u.distance_to_acc_per_updt(cf.player_acc_break_ground)
-            else:
-                self.player_power_acc = max(min(max_acc, self.player_power_acc + cf.player_power_acc_increment), u.distance_to_acc_per_updt(cf.player_acc_minimal_ground))
-                self.speed[0] = max(self.speed[0], 1 * u.distance_to_speed_per_updt(cf.player_speed_start) if not in_the_air else 0)
-            self.acc[0] = min(max_acc, self.player_power_acc) if vr.player.speed[1] == 0. else min(self.player_power_acc * cf.player_air_control, max_acc)
-        elif vr.inputs['LEFT'] and 'solid' not in self.detectors['left'].detection:
-            if self.speed[0] > 0:
-                self.player_power_acc = u.distance_to_acc_per_updt(cf.player_acc_break_ground)
-            else:
-                self.player_power_acc = max(min(max_acc, self.player_power_acc + cf.player_power_acc_increment), u.distance_to_acc_per_updt(cf.player_acc_minimal_ground))
-                self.speed[0] = min(self.speed[0], -1 * u.distance_to_speed_per_updt(cf.player_speed_start) if not in_the_air else 0)
-            self.acc[0] += -1 * min(max_acc, self.player_power_acc) if vr.player.speed[1] == 0. else -1 * min(self.player_power_acc * cf.player_air_control, max_acc)
-        else:
-            self.player_power_acc = 0
 
         jump_speed = u.distance_to_speed_per_updt(cf.player_jump_power)
         side_jump_speed = u.distance_to_speed_per_updt(cf.player_side_jump_power)
-        if vr.inputs['DOWN']:
-            self.acc[1] += u.distance_to_acc_per_updt(cf.player_down_acc)
-        elif vr.inputs['UP']:
-            if not in_the_air and 'jump_ready' in self.tags or 'can_double_jump' in self.tags:
-                PlayEffect('jump')
-                self.remove_tag('jump_ready')
-                self.actions_timers['jump'] = vr.t
-                self.actions_counter['jump'] = 0
-                if 'can_double_jump' in self.tags:
-                    self.tags.add('double_jumping')
-                    self.speed[1] = min(-1 * jump_speed * cf.player_double_jump_power, self.speed[1])
-                    self.remove_tag('can_double_jump')
-                    if vr.inputs['RIGHT'] and self.speed[0] < 0: self.speed[0] = u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
-                    if vr.inputs['LEFT'] and self.speed[0] > 0: self.speed[0] = -1 * u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
-                else:
+        in_the_air = 'on_ground' not in self.tags
+        max_acc = u.distance_to_acc_per_updt(cf.player_max_acc)
+
+        # Grapple
+        if self.grapple.state != 'caught' and vr.inputs['SPACE']: # Launch
+            self.remove_tag('balance_jump_reloaded')
+            self.launch_grapple()
+        elif 'grappling' in self.tags:
+            if not vr.inputs['SPACE']:
+                self.retract_grapple()
+
+        self.grapple.update(self.get_center())
+
+        # Right, Left, Up, Down
+        if self.grapple.state == 'caught':
+
+            if vr.inputs['RIGHT'] and self.speed[0] >= 0:
+                self.acc[0] = cf.player_balancing_power * (1 if not in_the_air else cf.player_air_control)
+            if vr.inputs['LEFT'] and self.speed[0] <= 0:
+                self.acc[0] = -1 * cf.player_balancing_power * (1 if not in_the_air else cf.player_air_control)
+            if vr.inputs['UP']:
+                if 'balance_jump_reloaded' in self.tags: # Jump and retract grapple
+                    self.remove_tag('balance_jump_reloaded')
                     self.tags.add('jumping')
-                    self.speed[1] = min(-1 * jump_speed, self.speed[1]) # Normal Jump
-            elif in_the_air:
-                self.actions_counter['side_jump'] = 0
-                if 'can_side_jump' in self.tags and 'solid' in self.detectors['right'].detection:
-                    self.speed[0] = -1 * max(u.distance_to_speed_per_updt(cf.player_side_jump_speed_turn) , abs(self.speed[0]))
-                    self.speed[1] = min(-1 * side_jump_speed, self.speed[1])
-                    self.actions_counter['side_jump'] = 0
-                    self.remove_tag('can_side_jump')
-                    self.actions_counter['double_jump'] = 1
-                    self.remove_tag('can_double_jump')
-                if 'can_side_jump' in self.tags and 'solid' in self.detectors['left'].detection:
-                    self.speed[0] = 1 * max(u.distance_to_speed_per_updt(cf.player_side_jump_speed_turn) , abs(self.speed[0]))
-                    self.speed[1] = min(-1 * side_jump_speed, self.speed[1])
-                    self.actions_counter['side_jump'] = 0
-                    self.remove_tag('can_side_jump')
-                    self.actions_counter['double_jump'] = 1
-                    self.remove_tag('can_double_jump')
-            if 'jumping' in self.tags:
-                if self.actions_counter['jump'] < cf.player_jump_max_counter:
-                    self.speed[1] = min(-1 * jump_speed, self.speed[1])
-                    self.actions_counter['jump'] += 1
-                else:
-                    self.remove_tag('jumping')
-            elif 'double_jumping' in self.tags:
-                if self.actions_counter['jump'] < cf.player_jump_max_counter:
-                    self.speed[1] = min(-1 * jump_speed * cf.player_double_jump_power, self.speed[1])
-                    self.actions_counter['jump'] += 1
-                else:
-                    self.remove_tag('double_jumping')
+                    self.actions_counter['jump'] = cf.player_jump_max_counter
+                    self.speed[1] = min(-1 * jump_speed, self.speed[1])  # Normal Jump
+                    self.actions_counter['double_jump'] = 1 # Allow double jump
+                    self.remove_tag('double_jump_reloaded') # Need to release UP to reset double jump
+                    self.retract_grapple()
+            else:
+                self.tags.add('balance_jump_reloaded')
+
+            self.acc = t.Vadd(self.acc, t.Vmul(t.Vdir(self.get_center(), self.grapple.target_anchor), self.grapple.elongation() * u.distance_to_acc_per_updt(cf.player_grapple_force)))
 
         else:
-            if in_the_air:
-                if self.actions_counter['double_jump'] == 1:
-                    self.tags.add('can_double_jump')
-                    self.actions_counter['double_jump'] = 0
-                if self.actions_counter['side_jump'] == 0:
-                    self.tags.add('can_side_jump')
-                    self.actions_counter['side_jump'] = 1
-            elif not in_the_air:
-                self.actions_counter['double_jump'] = 1
-                self.remove_tag('can_double_jump')
-                self.remove_tag('can_side_jump')
-            self.remove_tag('jumping')
-            self.remove_tag('double_jumping')
+            if vr.inputs['RIGHT'] and 'solid' not in self.detectors['right'].detection:
+                if self.speed[0] < 0:
+                    self.player_power_acc = u.distance_to_acc_per_updt(cf.player_acc_break * (1 if not in_the_air else cf.player_air_control))
+                else:
+                    self.player_power_acc = max(min(max_acc, self.player_power_acc + cf.player_power_acc_increment), u.distance_to_acc_per_updt(cf.player_acc_minimal_ground))
+                    self.speed[0] = max(self.speed[0], 1 * (u.distance_to_speed_per_updt(cf.player_speed_start_ground) if not in_the_air else u.distance_to_speed_per_updt(cf.player_speed_start_air)))
+                self.acc[0] = min(max_acc, self.player_power_acc * (1 if not in_the_air else cf.player_air_control))
+            elif vr.inputs['LEFT'] and 'solid' not in self.detectors['left'].detection:
+                if self.speed[0] > 0:
+                    self.player_power_acc = u.distance_to_acc_per_updt(cf.player_acc_break * (1 if not in_the_air else cf.player_air_control))
+                else:
+                    self.player_power_acc = max(min(max_acc, self.player_power_acc + cf.player_power_acc_increment), u.distance_to_acc_per_updt(cf.player_acc_minimal_ground))
+                    self.speed[0] = min(self.speed[0], -1 * (u.distance_to_speed_per_updt(cf.player_speed_start_ground) if not in_the_air else u.distance_to_speed_per_updt(cf.player_speed_start_air)))
+                self.acc[0] = -1 * min(max_acc, self.player_power_acc * (cf.player_air_control if in_the_air else 1))
+            else:
+                self.player_power_acc = 0
+            if in_the_air and abs(self.speed[0]) >= u.distance_to_speed_per_updt(cf.player_air_control_speed_threshold): self.player_power_acc = 0
+
+            if vr.inputs['DOWN']:
+                self.acc[1] += u.distance_to_acc_per_updt(cf.player_down_acc)
+            elif vr.inputs['UP']:
+                if (not in_the_air and 'jump_reloaded' in self.tags) or ('double_jump_reloaded' in self.tags):
+                    PlayEffect('jump')
+                    self.actions_timers['jump'] = vr.t
+                    if 'jump_reloaded' in self.tags:
+                        self.remove_tag('jump_reloaded')
+                        self.tags.add('jumping')
+                        self.actions_counter['jump'] = cf.player_jump_max_counter
+                        self.speed[1] = min(-1 * jump_speed, self.speed[1])  # Normal Jump
+                    elif 'double_jump_reloaded' in self.tags:
+                        self.remove_tag('double_jump_reloaded')
+                        self.tags.add('double_jumping')
+                        self.actions_counter['jump'] = int(cf.player_jump_max_counter * cf.player_double_jump_factor)
+                        self.speed[1] = min(-1 * jump_speed * cf.player_double_jump_factor, self.speed[1])
+                        if vr.inputs['RIGHT'] and self.speed[0] < 0: self.speed[0] = u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
+                        if vr.inputs['LEFT'] and self.speed[0] > 0: self.speed[0] = -1 * u.distance_to_speed_per_updt(cf.player_double_jump_speed_turn)
+                elif in_the_air:
+                    self.actions_counter['side_jump'] = 0
+                    if 'side_jump_reloaded' in self.tags and 'solid' in self.detectors['right'].detection:
+                        self.speed[0] = -1 * max(u.distance_to_speed_per_updt(cf.player_side_jump_speed_turn) , abs(self.speed[0]))
+                        self.speed[1] = min(-1 * side_jump_speed, self.speed[1])
+                        self.actions_counter['side_jump'] = 0
+                        self.remove_tag('side_jump_reloaded')
+                        self.actions_counter['double_jump'] = 1
+                        self.remove_tag('double_jump_reloaded')
+                    if 'side_jump_reloaded' in self.tags and 'solid' in self.detectors['left'].detection:
+                        self.speed[0] = 1 * max(u.distance_to_speed_per_updt(cf.player_side_jump_speed_turn) , abs(self.speed[0]))
+                        self.speed[1] = min(-1 * side_jump_speed, self.speed[1])
+                        self.actions_counter['side_jump'] = 0
+                        self.remove_tag('side_jump_reloaded')
+                        self.actions_counter['double_jump'] = 1
+                        self.remove_tag('double_jump_reloaded')
+            else:
+                if in_the_air:
+                    if self.actions_counter['double_jump'] >= 1:
+                        self.tags.add('double_jump_reloaded')
+                        self.actions_counter['double_jump'] = 0
+                    if self.actions_counter['side_jump'] == 0:
+                        self.tags.add('side_jump_reloaded')
+                        self.actions_counter['side_jump'] = 1
+                elif not in_the_air:
+                    self.actions_counter['double_jump'] = 1
+                    self.remove_tag('double_jump_reloaded')
+                    self.remove_tag('side_jump_reloaded')
+                self.remove_tag('jumping')
+                self.remove_tag('double_jumping')
+
+        if 'jumping' in self.tags:
+            if self.actions_counter['jump'] > 0:
+                self.speed[1] = min(-1 * jump_speed, self.speed[1])
+                self.actions_counter['jump'] -= 1
+            else:
+                self.remove_tag('jumping')
+        elif 'double_jumping' in self.tags:
+            if self.actions_counter['jump'] > 0:
+                self.speed[1] = min(-1 * jump_speed * cf.player_double_jump_factor, self.speed[1])
+                self.actions_counter['jump'] -= 1
+            else:
+                self.remove_tag('double_jumping')
 
     def launch_grapple(self):
         if vr.t - self.actions_timers['grapple'] > cf.player_grapple_reload and 'grappling' not in self.tags:
@@ -296,12 +336,17 @@ class Player:
         self.grapple.retract()
         self.remove_tag('grappling')
 
+    def kill(self):
+        self.tags.add('dead')
+        self.actions_timers['respawn'] = vr.t
+        self.damage_taken_effect()
+
     def is_killed(self):
         return (not all((self.all_detection.isdisjoint({'spike'}), self.detectors['body'].detection.isdisjoint({'bat'})))) and (not vr.fly_mode)
 
     def respawn(self):
         self.decentralise = [0, 0]
-        self.coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
+        self.win_coord = t.Vadd(t.Vdiff(vr.middle, self.get_half_size()), self.decentralise)
         self.speed = [0, 0]
         self.acc = [0, 0]
         self.tags = set()
@@ -313,7 +358,7 @@ class Player:
     def damage_taken_effect(self):
         PlayEffect('player_death')
         for i in range(100):
-            anchor = t.Vadd(t.Vadd(self.coord, vr.camera_coord), (
+            anchor = t.Vadd(t.Vadd(self.win_coord, vr.camera_coord), (
             self.sizex / 2 + t.rndInt(-0.2 * self.sizex, 0.2 * self.sizex),
             self.sizey / 2 + t.rndInt(- 0.4 * self.sizey, 0.4 * self.sizey)))
             max_speed = u.distance_to_speed_per_updt(15)
@@ -328,9 +373,9 @@ class Player:
         return self.sizex/2, self.sizey/2
     def get_center(self, world=False):
         if world:
-            return t.Vadd(vr.camera_coord, t.Vadd(self.coord, self.get_half_size()))
+            return t.Vadd(vr.camera_coord, t.Vadd(self.win_coord, self.get_half_size()))
         else:
-            return t.Vadd(self.coord, self.get_half_size())
+            return t.Vadd(self.win_coord, self.get_half_size())
     def get_world_anchor_centered(self):
         return t.Vadd(vr.camera_coord, self.get_center())
     def get_all_detection(self):
@@ -340,9 +385,10 @@ class Player:
         return detection
 
     def draw(self):
-        vr.game_window.blit(self.visual, self.coord)
-        #for detector in self.detectors:
-        #    self.detectors[detector].draw()
+        vr.game_window.blit(self.visual, self.win_coord)
+        if vr.draw_player_detectors:
+            for detector in self.detectors:
+                self.detectors[detector].draw()
         if self.grapple.state in ('launched', 'caught'):
             pg.draw.line(vr.game_window, (120, 90, 10), self.get_center(), self.grapple.target_anchor, 3)
             vr.game_window.blit(self.visuals['grapple']['frames'][0], self.grapple.get_top_left())
@@ -351,7 +397,7 @@ class Player:
 class GrappleHook:
     def __init__(self):
         self.target_anchor = vr.middle
-        self.length = 0
+        self.length, self.length_0 = 0, 0
         self.direction = (0, 0)
         self.state = 'stored'
 
@@ -361,11 +407,15 @@ class GrappleHook:
         self.direction = direction
         self.state = 'launched'
     def retract(self):
-        self.length = 0
+        self.length, self.length_0 = 0, 0
         self.state = 'stored'
         self.target_anchor = vr.middle
     def get_top_left(self):
         return t.Vcl(1, self.target_anchor, -0.5, cf.player_grapple_size)
+    def elongation(self):
+        f = (self.length - self.length_0) / cf.player_grapple_max_length
+        return f if f > 0 else 0
+
     def update(self, player_coord):
 
         if self.state == 'launched':
@@ -380,6 +430,8 @@ class GrappleHook:
             if 'solid' in self.detector.detection:
                 PlayEffect('grapple_hit')
                 self.state = 'caught'
+                self.target_anchor = u.adapt_to_view(self.detector.absolute_coord)
+                self.length_0 = t.distance(player_coord, self.target_anchor)
 
         if self.length == cf.player_grapple_max_length:
             self.retract()

@@ -234,6 +234,9 @@ class Settings(App):
                              'toggle_fps': gui.SwitchButton((vr.win_width * 0.25, vr.win_height * 0.3), (40, 40), 'Show FPS', switch_on=cf.show_fps, text_size=24, shiftx=1.3, shifty=0.15, callback=self.fps_callback),
                              'editor_mode': gui.SwitchButton((vr.win_width * 0.25, vr.win_height * 0.4), (40, 40), 'Editor Mode', switch_on=me.toggle_editor, text_size=24, shiftx=1.3, shifty=0.15, callback=self.editor_callback),
                              'fly_mode': gui.SwitchButton((vr.win_width * 0.25, vr.win_height * 0.5), (40, 40), 'Fly Mode', switch_on=vr.fly_mode, text_size=24, shiftx=1.3, shifty=0.15, callback=self.fly_callback),
+                             'show_detector': gui.SwitchButton((vr.win_width * 0.25, vr.win_height * 0.6), (40, 40),
+                                                          'Show detectors', switch_on=vr.draw_player_detectors, text_size=24, shiftx=1.3,
+                                                          shifty=0.15, callback=self.draw_player_detectors_callback),
                              'toggle_music': gui.SwitchButton((vr.win_width * 0.5, vr.win_height * 0.3), (40, 40), 'Music', switch_on=scf.sound_musics_mode, text_size=24, shiftx=1.3, shifty=0.15, callback=self.music_callback),
                              'music_volume': gui.SlidingValue((vr.win_width * 0.5, vr.win_height * 0.4), (40, 40), value=scf.music_volume, val_unit="%", value_size=14, val_shiftx=0.13, val_shifty=0.3, msg='Volume Music', text_size=24, shiftx=1.3, shifty=0.15, callback=self.music_volume_callback),
                              'toggle_sfx': gui.SwitchButton((vr.win_width * 0.5, vr.win_height * 0.5), (40, 40), 'Sound Effects', switch_on=scf.sound_effects_mode,  text_size=24, shiftx=1.3, shifty=0.15, callback=self.sfx_callback),
@@ -268,6 +271,8 @@ class Settings(App):
         me.toggle_editor = button_state
     def fly_callback(self, button_state):
         u.toggle_fly_mode(set_on=button_state)
+    def draw_player_detectors_callback(self, button_state):
+        vr.draw_player_detectors = button_state
     def music_volume_callback(self, volume):
         scf.music_volume = volume
         sm.updateVolume(scf.music_volume)

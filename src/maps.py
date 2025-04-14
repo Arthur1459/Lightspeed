@@ -17,6 +17,7 @@ class Map:
         self.start_coord = t.Vadd(cf.start_camera_coord, vr.middle)
         self.end_coord = cf.world_size
         self.geobjects, self.creatures = [], []
+        self.geobjects_anchors = set()
         self.content = {'geobjects': set(), 'creatures': set()}
 
         self.ambient_elts = []
@@ -68,6 +69,7 @@ class Map:
             if obj_classification == 'geobject':
                 self.geobjects.remove(obj)
                 self.content['geobjects'].remove((obj.get_type(), obj.get_data()))
+                self.geobjects_anchors.remove(tuple(obj.world_anchor))
             elif obj_classification == 'creature':
                 self.creatures.remove(obj)
                 self.content['creatures'].remove((obj.get_type(), obj.get_data()))
@@ -89,6 +91,7 @@ class Map:
             self.content['creatures'].add((creature.get_type(), creature.get_data()))
 
         self.geobjects, self.creatures = [], []
+        self.geobjects_anchors = set()
         for geo_type, geo_data in self.content['geobjects']:
             self.reload_obj(geo_type, geo_data)
         for creature_type, creature_data in self.content['creatures']:
@@ -102,18 +105,22 @@ class Map:
         if obj_type == 'block':
             anchor, size, visual_type = obj_data
             self.geobjects.append(geo.Block(anchor, size, visual_type))
+            self.geobjects_anchors.add(anchor)
         if obj_type == 'slope':
-            anchor, size, direction, visual_type = obj_data
+            anchor, size, visual_type, direction = obj_data
             self.geobjects.append(geo.Slope(anchor, size, visual_type, direction))
+            self.geobjects_anchors.add(anchor)
         elif obj_type == 'spike':
             anchor, size = obj_data
             self.geobjects.insert(0, geo.Spike(anchor, size))
+            self.geobjects_anchors.add(anchor)
         elif obj_type == 'bat':
             anchor = obj_data
             self.creatures.append(crt.Bat(anchor))
         elif obj_type == 'geobject':
             anchor, points = obj_data
             self.geobjects.append(geo.Geobject(anchor, points))
+            self.geobjects_anchors.add(anchor)
 
     def save_map(self, new=False):
         content = {'geobjects': set(), 'creatures': set()}
@@ -138,6 +145,7 @@ class Map:
         except: print("No end coord !")#raise "End coord cannot be read !"
 
         self.geobjects, self.creatures = [], []
+        self.geobjects_anchors = set()
         for geo_type, geo_data in self.content['geobjects']:
             self.reload_obj(geo_type, geo_data)
         for creature_type, creature_data in self.content['creatures']:
