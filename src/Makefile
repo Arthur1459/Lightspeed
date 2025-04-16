@@ -27,6 +27,7 @@ make-app:
 			  	--add-data "rsc/visuals/particles/star/*.png:rsc/visuals/particles/star/" \
 			  	--add-data "rsc/visuals/particles/void/*.png:rsc/visuals/particles/void/" \
 			  	--add-data "rsc/visuals/creatures/bat/*.png:rsc/visuals/creatures/bat/" \
+			  	--add-data "rsc/visuals/creatures/zombietree/*.png:rsc/visuals/creatures/zombietree/" \
 			  	--add-data "rsc/visuals/misc/start/*.png:rsc/visuals/misc/start/" \
 			  	--add-data "rsc/visuals/misc/end/*.png:rsc/visuals/misc/end/" \
 			  	--add-data "rsc/visuals/misc/*.png:rsc/visuals/misc/" \

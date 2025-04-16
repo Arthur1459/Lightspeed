@@ -33,6 +33,7 @@ block_default_size = 100
 # Player
 respawn_time = 1.
 anti_glitch_power = 1
+fly_speed = 12
 player_size = (50, 70)
 player_speed_start_ground = 8
 player_speed_start_air = 4
@@ -52,7 +53,7 @@ player_air_control = 0.9
 player_air_control_speed_threshold = 16
 player_ground_friction = 0.8
 player_air_friction = 0.95
-player_grapple_reload = 0.5
+player_grapple_reload = 0.25
 player_grapple_speed = 1
 player_grapple_max_length, player_grapple_min_length = 250, 100
 player_grapple_force = 10
@@ -62,4 +63,5 @@ draw_player_detectors = False
 
 # Creatures
 bat = {'action_radius': 200, 'moving_radius': 50, 'size': 50, 'speed_default': 0.5, 'speed_attack': 2, 'come_back_speed': 0.5}
+zombietree = {'action_radius': 300, 'moving_radius': 50, 'size': (75, 100), 'speed_default': 0.5, 'speed_attack': 3, 'come_back_speed': 0.5}
 

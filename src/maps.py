@@ -117,6 +117,9 @@ class Map:
         elif obj_type == 'bat':
             anchor = obj_data
             self.creatures.append(crt.Bat(anchor))
+        elif obj_type == 'zombietree':
+            anchor = obj_data
+            self.creatures.append(crt.ZombieTree(anchor))
         elif obj_type == 'geobject':
             anchor, points = obj_data
             self.geobjects.append(geo.Geobject(anchor, points))

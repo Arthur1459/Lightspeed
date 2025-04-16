@@ -39,7 +39,8 @@ particles_visuals = {'default': {'frames': load_folder("particles/default"), 'du
              'fire': {'frames': load_folder("particles/fire"), 'duration': 0.1},
              'void': {'frames': load_folder("particles/void"), 'duration': 0.2},
              'star': {'frames': load_folder("particles/star"), 'duration': 1.}}
-creatures_visuals = {'bat': {'frames': load_folder("creatures/bat", resize=t.duo(cf.bat['size'])), 'duration': 0.05}}
+creatures_visuals = {'bat': {'frames': load_folder("creatures/bat", resize=t.duo(cf.bat['size'])), 'duration': 0.05},
+                     'zombietree': {'frames': load_folder("creatures/zombietree", resize=cf.zombietree['size']), 'duration': 0.15}}
 misc_visuals = {'start': {'frames': load_folder("misc/start", resize=t.duo(cf.block_default_size)), 'duration': 0.05},
                 'end': {'frames': load_folder("misc/end", resize=t.duo(cf.block_default_size)), 'duration': 0.05},
                 'background': img("misc/background.png", resize=cf.view_size)}

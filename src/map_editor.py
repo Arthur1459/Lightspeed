@@ -10,12 +10,12 @@ click_minimal_duration = 0.1
 wait_key = vr.t
 
 toggle_editor = False
-blocks, blocks_index = ['block', 'slope', 'spike', 'bat', 'start_coord', 'end_coord'], 0
+blocks, blocks_index = ['block', 'slope', 'spike', 'bat', 'zombietree', 'start_coord', 'end_coord'], 0
 map_classification = {'geobject': 'geobject', 'block': 'geobject', 'slope': 'geobject', 'spike': 'geobject',
-                      'creature': 'creature', 'bat': 'creature'}
+                      'creature': 'creature', 'bat': 'creature', 'zombietree': 'creature'}
 current_block_type_to_place = 'block'
 
-medium_block_types = {'default', 'block', 'slope'}
+medium_block_types = {'default', 'block', 'slope', 'zombietree'}
 small_block_types = {'spike', 'bat'}
 large_block_types = set()
 block_with_floating_coord_type = {'end_coord', 'start_coord'}
@@ -77,7 +77,10 @@ def editor_update():
             elif map_classification[current_block_type_to_place] == 'creature':
                 if current_block_type_to_place == 'bat':
                     vr.map.add_creature('bat', anchor, update=True)
-                else: pass
+                elif current_block_type_to_place == 'zombietree':
+                    vr.map.add_creature('zombietree', anchor, update=True)
+                else:
+                    pass
             else:
                 print("# Error : unknown type block -> ", current_block_type_to_place)
         elif vr.inputs['H'] and wait_for_key():

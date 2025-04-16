@@ -191,10 +191,10 @@ class Player:
     def control_player(self):
 
         if vr.fly_mode:
-            if vr.inputs['RIGHT']: self.speed[0] = 1 * u.distance_to_speed_per_updt(15)
-            elif vr.inputs['LEFT']: self.speed[0] = -1 * u.distance_to_speed_per_updt(15)
-            if vr.inputs['DOWN']: self.speed[1] = 1 * u.distance_to_speed_per_updt(15)
-            elif vr.inputs['UP']: self.speed[1] = -1 * u.distance_to_speed_per_updt(15)
+            if vr.inputs['RIGHT']: self.speed[0] = 1 * u.distance_to_speed_per_updt(cf.fly_speed)
+            elif vr.inputs['LEFT']: self.speed[0] = -1 * u.distance_to_speed_per_updt(cf.fly_speed)
+            if vr.inputs['DOWN']: self.speed[1] = 1 * u.distance_to_speed_per_updt(cf.fly_speed)
+            elif vr.inputs['UP']: self.speed[1] = -1 * u.distance_to_speed_per_updt(cf.fly_speed)
             return
 
         jump_speed = u.distance_to_speed_per_updt(cf.player_jump_power)
@@ -203,12 +203,12 @@ class Player:
         max_acc = u.distance_to_acc_per_updt(cf.player_max_acc)
 
         # Grapple
-        if self.grapple.state != 'caught' and vr.inputs['SPACE']: # Launch
-            self.remove_tag('balance_jump_reloaded')
-            self.launch_grapple()
-        elif 'grappling' in self.tags:
-            if not vr.inputs['SPACE']:
-                self.retract_grapple()
+        if vr.inputs['SPACE']:
+            if self.grapple.state == 'stored': # Launch
+                self.remove_tag('balance_jump_reloaded')
+                self.launch_grapple()
+        elif self.grapple.state != 'stored':
+            self.retract_grapple()
 
         self.grapple.update(self.get_center())
 
@@ -315,7 +315,7 @@ class Player:
                 self.remove_tag('double_jumping')
 
     def launch_grapple(self):
-        if vr.t - self.actions_timers['grapple'] > cf.player_grapple_reload and 'grappling' not in self.tags:
+        if vr.t - self.actions_timers['grapple'] > cf.player_grapple_reload:
             PlayEffect('grapple_throw')
             self.actions_timers['grapple'] = vr.t
             self.tags.add('grappling')
@@ -342,7 +342,9 @@ class Player:
         self.damage_taken_effect()
 
     def is_killed(self):
-        return (not all((self.all_detection.isdisjoint({'spike'}), self.detectors['body'].detection.isdisjoint({'bat'})))) and (not vr.fly_mode)
+        return (not all((self.all_detection.isdisjoint({'spike'}),
+                         self.detectors['body'].detection.isdisjoint({'bat'}),
+                         self.detectors['body'].detection.isdisjoint({'zombietree'})))) and (not vr.fly_mode)
 
     def respawn(self):
         self.decentralise = [0, 0]
@@ -354,6 +356,7 @@ class Player:
         self.actions_timers = {'jump': 0, 'respawn': 0, 'grapple': 0}
         self.actions_counter = {'jump': 0, 'double_jump': 1, 'side_jump': 0}
         self.player_power_acc = 0
+        self.grapple.retract()
 
     def damage_taken_effect(self):
         PlayEffect('player_death')
@@ -414,7 +417,7 @@ class GrappleHook:
         return t.Vcl(1, self.target_anchor, -0.5, cf.player_grapple_size)
     def elongation(self):
         f = (self.length - self.length_0) / cf.player_grapple_max_length
-        return f if f > 0 else 0
+        return f**2 if f > 0 else 0
 
     def update(self, player_coord):
 
@@ -437,9 +440,9 @@ class GrappleHook:
             self.retract()
 
 class Detector:
-    def __init__(self, anchor, relative_coord):
+    def __init__(self, win_anchor, relative_coord):
         self.id = u.getNewId()
-        self.win_anchor = anchor
+        self.win_anchor = win_anchor
         self.relative_coord = relative_coord
         self.absolute_coord = t.Vadd(vr.camera_coord, t.Vadd(self.win_anchor, self.relative_coord))
 
