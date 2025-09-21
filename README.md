@@ -2,6 +2,8 @@
 
 #### Author : Arthur Oudeyer
 
+### [DEMO VIDEO](https://youtu.be/rDw6lY7L9G4?si=xCDylyQjqPU-pG3C)
+
 ### How to try the game :
 
 First of all **clone / download this repository**:
